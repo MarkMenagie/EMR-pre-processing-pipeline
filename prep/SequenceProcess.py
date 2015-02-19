@@ -4,7 +4,7 @@ import re
 from PreProcess import PreProcess
 from StateInterval import StateInterval
 from date_math import get_dates, str2date
-import util
+import util_.util as util
 
 class SequenceProcess(PreProcess):
 

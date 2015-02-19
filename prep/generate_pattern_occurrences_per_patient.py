@@ -2,8 +2,8 @@ import sys
 from frequent_patterns import generate
 import numpy as np
 
-import util
-import in_out
+import util_.util as util
+import util_.in_out as in_out
 from StateInterval import new_SI
 from StateSequence import StateSequence
 from Pattern import Pattern

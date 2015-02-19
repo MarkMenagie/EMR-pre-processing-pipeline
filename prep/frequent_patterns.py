@@ -3,7 +3,7 @@ from collections import defaultdict
 import numpy as np
 from operator import itemgetter
 
-import in_out
+import util_.in_out as in_out
 from Pattern import Pattern, enrich_pattern
 from StateInterval import StateInterval
 from StateSequence import StateSequence

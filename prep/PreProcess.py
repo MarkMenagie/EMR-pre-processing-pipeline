@@ -1,7 +1,7 @@
 import re
 from date_math import generate_patient_interval, generate_random_patient_interval, str2date
-from in_out import write_csv
-import util
+from util_.in_out import write_csv
+import util_.util as util
 
 class PreProcess():
 
