@@ -42,3 +42,11 @@ def append_slash(s):
 def list_dir_csv(s):
 	'''returns a list of all csv's in a directory s'''
 	return [s + '/' + f for f in os.listdir(s) if f.endswith('.csv')]
+
+def get_current_datetime():
+	'''returns the current datetime in a neat format'''
+	now = datetime.now()
+	d = str(now.date())
+	t = str(now.time())[:-7]
+	now = ('D' + d + '-T' + t).replace(':', '-')
+	return now

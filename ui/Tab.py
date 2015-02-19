@@ -52,3 +52,20 @@ class PipelineTab(Tab):
 		Label(self, text=help_txt).grid(row=r, column=c+2)
 		return var		
 
+	def setup_launcher(self):
+		'''create buttons to execute the job and for default values'''
+
+		def_button = Button(self,text='Defaults')
+		def_button.grid(row=16, column=0, padx=5, pady=5, sticky=W)
+		def_button.configure(command=self.defaults)
+
+		go_button = Button(self,text="Run!")
+		go_button.grid(row=16, column=1, padx=5, pady=5, sticky=E)
+		go_button.configure(command=lambda: self.go(go_button))
+
+	def defaults(self):
+		'''abstract method called when the 'defaults' button is pressed'''
+	
+	def go(self, button):
+		'''abstract method called when the 'go' button is pressed'''
+

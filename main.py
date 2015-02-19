@@ -22,6 +22,6 @@ def init_UI():
 	return main
 
 if __name__ == '__main__':
-	'''initialize UI and start it'''
-	program = init_UI()
-	program.mainloop()
+	'''initialize GUI and start it'''
+	gui = init_UI()
+	gui.mainloop()

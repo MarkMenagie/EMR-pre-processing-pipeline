@@ -24,6 +24,7 @@ class ProcessTab(PipelineTab):
 		self.pack()
 
 	def setup_IO_dirs(self):
+		'''add I/O part'''
 		dct = self.user_input
 
 		dct['in_dir'] = self.button_component('Browse', 'input folder', 0, 0)
@@ -31,6 +32,7 @@ class ProcessTab(PipelineTab):
 		dct['out_dir'] = self.button_component('Browse', 'output folder', 2, 0)
 
 	def setup_general(self):
+		'''add options part'''
 		dct = self.user_input
 
 		dct['min_age'] = self.general_component('Minimum age', 3, 0)
@@ -44,6 +46,7 @@ class ProcessTab(PipelineTab):
 		Checkbutton(self,text='verbose (N/A)', variable=verbose_val, state=DISABLED).grid(row=8, column=0, columnspan=2, sticky=W)
 
 	def setup_radio_buttons(self):
+		'''add atemporal vs temporal choice part'''
 		dct = self.user_input
 
 		temporal_processing_flag = BooleanVar()
@@ -74,18 +77,8 @@ class ProcessTab(PipelineTab):
 		old_f.grid_forget()
 		new_f.grid(row=10, column=0, rowspan=6, columnspan=2, sticky=W)
 
-	def setup_launcher(self):
-		'''create buttons to execute the job and for default values'''
-
-		def_button = Button(self,text='Defaults')
-		def_button.grid(row=16, column=0, padx=5, pady=5, sticky=W)
-		def_button.configure(command=self.defaults)
-
-		go_button = Button(self,text="Run!")
-		go_button.grid(row=16, column=1, padx=5, pady=5, sticky=E)
-		go_button.configure(command=lambda: self.go(go_button))
-
 	def defaults(self):
+		'''set the user_input dict to default values'''
 		dct = self.user_input
 
 		dct['in_dir'].set('/Users/Reiny/Documents/UI_CRC/playground')
@@ -98,8 +91,8 @@ class ProcessTab(PipelineTab):
 		dct['ID_column'].set('patientnummer')
 		dct['temporal_specific']['support'].set(0.1)
 
-
 	def go(self, button):
+		'''initiates the associated algorithms '''
 		dct = self.user_input
 
 		button.config(text='Running', state=DISABLED)
@@ -124,10 +117,7 @@ class ProcessTab(PipelineTab):
 
 		self.master.update_idletasks()
 
-		now = datetime.now()
-		d = str(now.date())
-		t = str(now.time())[:-7]
-		now = ('D' + d + '-T' + t).replace(':', '-')
+		now = util.get_current_datetime()
 		util.make_dir(dct['out_dir'].get() + '/' + now)
 
 		# process temporally
