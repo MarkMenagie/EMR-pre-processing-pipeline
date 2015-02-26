@@ -1,5 +1,6 @@
 from in_out import read_csv
 import os
+from datetime import datetime
 
 def import_data(f, delim=','):
 	'''import data and separates the column names from the data'''

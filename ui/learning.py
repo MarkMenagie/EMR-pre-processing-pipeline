@@ -1,7 +1,8 @@
 from Tab import PipelineTab
-from Tkinter import LEFT, BooleanVar, W
+from Tkinter import LEFT, BooleanVar, W, NORMAL, DISABLED
 from ttk import Label, Checkbutton
 from learn import learn
+from time import time
 import util_.util as util
 
 class LearningTab(PipelineTab):
@@ -58,7 +59,7 @@ class LearningTab(PipelineTab):
 
 		dct['in_dir'].set('specify input directory!')
 		dct['out_dir'].set('/Users/Reiny/Documents/UI_CRC/out')
-		dct['record_id'].set('patientnummer')
+		dct['record_id'].set('ID')
 		dct['DT'].set(True)
 		dct['LR'].set(True)
 		dct['RF'].set(True)
@@ -66,6 +67,10 @@ class LearningTab(PipelineTab):
 
 	def go(self, button):
 		'''initiates the associated algorithms '''
+		button.config(text='Running', state=DISABLED)
+		self.master.update_idletasks()
+
+
 		dct = self.user_input
 		
 		in_dir = dct['in_dir'].get()
@@ -79,7 +84,13 @@ class LearningTab(PipelineTab):
 		if dct['RF'].get(): algorithms.append('RF')
 		if dct['SVM'].get(): algorithms.append('SVM')
 
-		record_id = dct['record_id'].get()
-		target_id = dct['target_id'].get()
+		record_id = dct['record_id'].get().lower()
+		target_id = 'target'
+		# target_id = dct['target_id'].get()
 
 		learn.execute(in_dir, out_dir, record_id, target_id, algorithms)
+
+		button.config(text='Done')
+		self.master.update_idletasks()
+		time.sleep(0.5)	
+		button.config(text='Run!', state=NORMAL)	
