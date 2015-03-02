@@ -2,7 +2,7 @@ from Tab import PipelineTab
 from Tkinter import LEFT, BooleanVar, W, NORMAL, DISABLED
 from ttk import Label, Checkbutton
 from learn import learn
-from time import time
+import time
 import util_.util as util
 
 class LearningTab(PipelineTab):

@@ -52,6 +52,9 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id):
 		elif alg == 'LR':
 			results, features = ML.LR(X, y)
 
+		if not results:
+			return
+
 		# export results
 		results_list.append([fname] + results[0:3])
 

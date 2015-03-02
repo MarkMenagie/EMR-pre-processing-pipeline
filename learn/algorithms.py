@@ -23,24 +23,30 @@ def SVM(X, y):
 
 def CART(X, y, out_file, field_names):
     results, model = execute(X, y, lambda: tree.DecisionTreeClassifier(max_depth=5, min_samples_leaf=50))
-    tree.export_graphviz(model, out_file=out_file, feature_names=field_names)
+    if model:
+        tree.export_graphviz(model, out_file=out_file, feature_names=field_names)
     return results
 
 def RF(X, y):
     results, model =  execute(X, y, lambda: ensemble.RandomForestClassifier(n_estimators=100,max_depth=5, min_samples_leaf=50, n_jobs=-1))
-    features = model.feature_importances_
+    if model:
+        features = model.feature_importances_
+    else:
+        features = False
     return results, features
    
 def LR(X, y):
     results, model =  execute(X, y, lambda: linear_model.LogisticRegression())
-    features = model.coef_
+    if model:
+        features = model.coef_
+    else:
+        features = False
     return results, features
 
 def execute(X, y, classifier):
     X = X.astype(np.float64)
     y = y.astype(np.float64)
     cv = StratifiedKFold(y, n_folds=5) # x-validation
-
     classifier = classifier()
 
     clf = Pipeline([('classifier',classifier)])
@@ -49,10 +55,12 @@ def execute(X, y, classifier):
     mean_fpr = np.linspace(0, 1, 100)
     all_tpr = []
     cm=np.zeros((2,2))
-
     # cross fold validation
     for i, (train, test) in enumerate(cv):
-        
+        if sum(y[train]) < 5:
+            print '...cannot train; too few positive examples'
+            return False, False
+
         # train
         trained_classifier = clf.fit(X[train], y[train])
 
@@ -61,7 +69,7 @@ def execute(X, y, classifier):
 
         # make cutoff for confusion matrix
         y_pred_binary = (y_pred[:,1] > 0.01).astype(int)
-        
+
         # derive ROC/AUC/confusion matrix
         fpr, tpr, thresholds = roc_curve(y[test], y_pred[:, 1])
         mean_tpr += interp(mean_fpr, fpr, tpr)
