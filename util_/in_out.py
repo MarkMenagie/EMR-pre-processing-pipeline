@@ -4,6 +4,7 @@ import numpy as np
 from operator import itemgetter
 import os
 import util
+from pprint import pprint
 
 def read_csv(f, delim=','):
 	'''opens a csv reader object'''
@@ -30,6 +31,11 @@ def get_file_name(path, extension=True):
 	
 	return f
 
+def pprint_to_file(f_out, obj):
+	'''performs the pretty print operation to the specified file with the specified data object'''
+	with open (f_out, 'w') as out:
+		pprint(obj, out)
+
 def import_data(f, record_id, target_id):
 	'''imports the data and converts it to X (input) and y (output) data vectors'''
 	rows = read_csv(f)
@@ -41,12 +47,13 @@ def import_data(f, record_id, target_id):
 		record_col = headers.index(record_id)
 		target_col = headers.index(target_id)
 	except:
-		print 'The specified instance ID was not found as column name. Exiting. (caps?)'
+		print 'The specified instance ID was not found as column name. Manually check input file for correct instance ID column.'
 		return False, False, False
 
 	# save and split records
 	records = np.matrix([row for row in rows])
 	X = records[:,1:-1] # features
+	headers = headers[1:-1]
 	
 	# convert gender to binary
 	X[X=='V'] = 1

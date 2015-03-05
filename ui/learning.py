@@ -70,7 +70,6 @@ class LearningTab(PipelineTab):
 		button.config(text='Running', state=DISABLED)
 		self.master.update_idletasks()
 
-
 		dct = self.user_input
 		
 		in_dir = dct['in_dir'].get()

@@ -49,7 +49,7 @@ class Raw2Patterns(Raw2Processed):
 		self.buttons['sequences_available'] = self.patterns_btn
 		self.patterns_btn.configure(command=lambda : self.sequence_mode(f, 'sequences_available'))
 
-		self.add_file_browser(f, 'Browse', '', 8, 0)
+		self.add_file_browser(f, 'Browse', '', 8, 0, mode=DISABLED)
 
 		return f
 
@@ -64,12 +64,14 @@ class Raw2Patterns(Raw2Processed):
 			for w in self.sequence_widgets:
 				w.config(state=DISABLED)
 
-	def add_file_browser(self, f, button_txt, init_txt , r, c, help_txt=''):
+	def add_file_browser(self, f, button_txt, init_txt , r, c, help_txt='', mode=NORMAL):
 		b = Button(f,text=button_txt)
+		b.config(state=DISABLED)
 		b.grid(row=r, column=c, sticky=W+E)
 		f_var = StringVar()
 		f_var.set(init_txt)
 		e = Entry(f, textvariable=f_var)
+		e.config(state=DISABLED)
 		e.grid(row=r, column=c+1)
 		b.configure(command=lambda: self.browse_file(f_var, b))
 

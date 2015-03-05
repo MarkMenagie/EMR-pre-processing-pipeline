@@ -2,9 +2,11 @@ from datetime import datetime
 import time
 
 import util_.util as util
+import util_.in_out as io
 
 from prep.StandardProcess import StandardProcess
 from prep.SequenceProcess import SequenceProcess
+from prep.EnrichProcesses import StandardEnrichProcess, SequenceEnrichProcess
 from prep.generate_pattern_occurrences_per_patient import generate_pattern_occurrences_per_patient
 
 from Tab import PipelineTab
@@ -41,9 +43,14 @@ class ProcessTab(PipelineTab):
 		dct['end_interval'] = self.general_component('Last interval day', 6, 0, help_txt='')
 		dct['ID_column'] = self.general_component('ID column name', 7, 0, init_val='patientnummer')
 
+		enrich_val = BooleanVar()
+		dct['enrich'] = enrich_val
+		Checkbutton(self,text='semantic enrichment', variable=enrich_val).grid(row=8, column=0, columnspan=2, sticky=W)
+		dct['mapping_dir'] = self.button_component('Browse', 'semantic enrichment dir', 9, 0)
+
 		verbose_val = BooleanVar()
 		dct['verbose'] = verbose_val
-		Checkbutton(self,text='verbose (N/A)', variable=verbose_val, state=DISABLED).grid(row=8, column=0, columnspan=2, sticky=W)
+		Checkbutton(self,text='verbose (N/A)', variable=verbose_val, state=DISABLED).grid(row=10, column=0, columnspan=2, sticky=W)
 
 	def setup_radio_buttons(self):
 		'''add atemporal vs temporal choice part'''
@@ -55,13 +62,13 @@ class ProcessTab(PipelineTab):
 		regular = Raw2Attributes()
 		regular_frame = regular.make_frame(self)
 		reg_button = Radiobutton(self, text='raw2attributes', value=False, variable=temporal_processing_flag)
-		reg_button.grid(row=9, column=0, sticky=W)
+		reg_button.grid(row=11, column=0, sticky=W)
 
 		# get context dependent frame (temporal)
 		temporal = Raw2Patterns()
 		temporal_frame = temporal.make_frame(self)
 		tmprl_button = Radiobutton(self, text='raw2patterns', value=True, variable=temporal_processing_flag)
-		tmprl_button.grid(row=9, column=1, sticky=W)
+		tmprl_button.grid(row=11, column=1, sticky=W)
 
 		# configure events, invoke one by default
 		reg_button.configure(command=lambda : self.set_frame(regular_frame, temporal_frame))
@@ -75,7 +82,7 @@ class ProcessTab(PipelineTab):
 	def set_frame(self, new_f, old_f):
 		'''set the context dependent frame, initiated by a push on a radio button'''
 		old_f.grid_forget()
-		new_f.grid(row=10, column=0, rowspan=6, columnspan=2, sticky=W)
+		new_f.grid(row=12, column=0, rowspan=6, columnspan=2, sticky=W)
 
 	def defaults(self):
 		'''set the user_input dict to default values'''
@@ -90,6 +97,8 @@ class ProcessTab(PipelineTab):
 		dct['end_interval'].set(int(365./52*12))
 		dct['ID_column'].set('patientnummer')
 		dct['temporal_specific']['support'].set(0.1)
+		dct['mapping_dir'].set('../out/semantics_preliminary/')
+
 
 	def go(self, button):
 		'''initiates the associated algorithms '''
@@ -114,59 +123,72 @@ class ProcessTab(PipelineTab):
 			dct['ID_column'].set('patientnummer')
 		if dct['temporal_specific']['support'].get() == '':
 			dct['temporal_specific']['support'].set(0.1)
+		if dct['mapping_dir'].get() == 'semantic enrichment dir':
+			dct['mapping_dir'].set('../out/semantics_preliminary/')
 
 		self.master.update_idletasks()
 
 		now = util.get_current_datetime()
 		util.make_dir(dct['out_dir'].get() + '/' + now)
 
-		# process temporally
-		if dct['process_temporal'].get():
-			needs_processing = {k : bool(v.get()) for k, v in dct['temporal_specific'].iteritems()}
+		args = [dct['in_dir'].get(), 
+				dct['delimiter'].get(),
+				dct['out_dir'].get() + '/' + now, 
+				dct['ID_column'].get(),
+				int(dct['min_age'].get()),
+				int(dct['max_age'].get()),
+				[int(dct['end_interval'].get()), int(dct['begin_interval'].get())]]
 
-			out_dir = dct['out_dir'].get() + '/' + now + '/data/'
-			util.make_dir(out_dir)
-			min_sup = float(dct['temporal_specific']['support'].get())
-			
-			if not dct['temporal_specific']['sequences_available'].get():
-				seq_p = SequenceProcess(dct['in_dir'].get(), 
-						dct['delimiter'].get(),
-						dct['out_dir'].get() + '/' + now, 
-						dct['ID_column'].get(),
-						int(dct['min_age'].get()),
-						int(dct['max_age'].get()),
-						[int(dct['end_interval'].get()), int(dct['begin_interval'].get())])
-				
-				seq_p.process(needs_processing)
-				seq_p.save_output(include_headers=False, sub_dir='data/tmprl', name='sequences')
-
-				sequence_f = out_dir + '/tmprl/sequences.csv'
-			else:
-				sequence_f = dct['temporal_specific']['sequence_file'].get()
-
-			generate_pattern_occurrences_per_patient(out_dir, sequence_f, min_sup)
-
-		# process atemporally
-		else:
-			needs_processing = {k : bool(v.get()) for k, v in dct['a-temporal_specific'].iteritems()}
-
-			std_p = StandardProcess(dct['in_dir'].get(), 
-					dct['delimiter'].get(),
-					dct['out_dir'].get() + '/' + now, 
-					dct['ID_column'].get(),
-					int(dct['min_age'].get()),
-					int(dct['max_age'].get()),
-					[int(dct['end_interval'].get()), int(dct['begin_interval'].get())])
-			
-			std_p.process(needs_processing)
-			std_p.save_output(name='counts', sub_dir='data')
-			std_p.save_output(benchmark=True, sub_dir='data', name='benchmark')
+		if dct['process_temporal'].get(): # process temporally
+			self.temporal(dct, now, args)
+		else: # process atemporally
+			self.regular(dct, now, args)
+		
+		pretty_dct = util.tkinter2var(dct)
+		io.pprint_to_file(dct['out_dir'].get() + '/' + now + '/settings.txt', pretty_dct)
 
 		button.config(text='Done')
 		self.master.update_idletasks()
 		time.sleep(0.5)	
-		# button.config(text='Wait')	
-		# UI.update_idletasks()
-		# time.sleep(0.5)	
-		button.config(text='Run!', state=NORMAL)	
+		button.config(text='Run!', state=NORMAL)
+
+	def temporal(self, dct, now, args):
+		needs_processing = {k : bool(v.get()) for k, v in dct['temporal_specific'].iteritems()}
+
+		out_dir = dct['out_dir'].get() + '/' + now + '/data/'
+		util.make_dir(out_dir)
+		min_sup = float(dct['temporal_specific']['support'].get())
+		
+		if not dct['temporal_specific']['sequences_available'].get():
+			# if enrichment is enabled, we create a different object instance than usual
+			if dct['enrich'].get():
+				seq_p = SequenceEnrichProcess(*args, mapping_files_dir=dct['mapping_dir'].get())
+				name = 'sequences_enriched'
+			else:
+				seq_p = SequenceProcess(*args)
+				name = 'sequences'
+
+			seq_p.process(needs_processing)
+			seq_p.save_output(sequence_file=True, sub_dir='data/tmprl', name=name)
+
+			sequence_f = out_dir + '/tmprl/{}.csv'.format(name)
+		else:
+			sequence_f = dct['temporal_specific']['sequence_file'].get()
+
+		generate_pattern_occurrences_per_patient(out_dir, sequence_f, min_sup)
+
+	def regular(self, dct, now, args):	
+		needs_processing = {k : bool(v.get()) for k, v in dct['a-temporal_specific'].iteritems()}
+
+		if dct['enrich'].get():
+			std_p = StandardEnrichProcess(*args, mapping_files_dir=dct['mapping_dir'].get())
+			std_p.process(needs_processing)
+			std_p.save_output(name='counts_enriched', sub_dir='data')
+		
+		std_p = StandardProcess(*args)
+		std_p.process(needs_processing)
+		std_p.save_output(name='counts', sub_dir='data')
+
+		std_p.save_output(benchmark=True, sub_dir='data', name='age+gender')
+		std_p.save_output(target=True, sub_dir='data', name='target')
 

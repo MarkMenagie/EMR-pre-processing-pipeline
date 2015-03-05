@@ -4,25 +4,22 @@ from util_.in_out import write_csv
 import util_.util as util
 
 class PreProcess():
+	'''abstract class describing basic functionality of the preprocessing phase'''
 
 	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval):
 		self.in_dir = in_dir
-		self.delim = delim
+		self.delim = delim # delimiter of input file (default ',')
 		self.out_dir = out_dir
-		self.ID_column = ID_column
+		self.ID_column = ID_column # name of the ID of a data instance
 		self.min_age = min_age
-		self.max_age = max_age
-		self.interval = interval
-		self.id2data = dict()
+		self.max_age = max_age 
+		self.interval = interval # interval of data we deem relevant
+		self.id2data = dict() # dict describing all data instances
 
 	def insert_data(self, f, code_column, date_column, regex_string, limit, suffix='', incorporate_SOEP=False):
 		'''abstract method to be implemented by subclass'''
-		print 'abstract method "insert_data" called'
+		print 'abstract method "insert_data" called by', type(self)
 
-	def	save_output(self):
-		'''saves processed data to the specified output directory'''
-		print 'abstract method "save_output" called'
-	
 	def process(self, needs_processing):
 		'''converts all input csv's to usable data'''
 
@@ -43,8 +40,9 @@ class PreProcess():
 		# gather data from medication csv
 		if 'medication' in needs_processing and needs_processing['medication']:
 			med_f = util.select_file(files, 'medicatie')
+			rows, fields = util.import_data(med_f, delim=self.delim)
 			med_headers = self.insert_data(
-									med_f, 
+									rows, fields, 
 									'atc_code', 
 									['voorschrijfdatum', 'voorschrijfdatum'], 
 									'[A-Z][0-9][0-9]', 3,
@@ -54,8 +52,9 @@ class PreProcess():
 		# gather data from consult csv
 		if 'consults' in needs_processing and needs_processing['consults']:
 			consult_f = util.select_file(files, 'journaal')
+			rows, fields = util.import_data(consult_f, delim=self.delim)
 			consult_headers = self.insert_data(
-									consult_f, 
+									rows, fields, 
 									'icpc', 
 									['datum', 'datum'], 
 									'[A-Z][0-9][0-9]', 3,
@@ -65,8 +64,9 @@ class PreProcess():
 		# gather data from referral csv
 		if 'referrals' in needs_processing and needs_processing['referrals']:
 			ref_f = util.select_file(files, 'verwijzing')
+			rows, fields = util.import_data(ref_f, delim=self.delim)
 			ref_headers = self.insert_data(
-									ref_f, 
+									rows, fields, 
 									'specialisme', 
 									['datum', 'datum'], 
 									'.*', None)
@@ -75,8 +75,9 @@ class PreProcess():
 		# gather data from comorbidity csv
 		if 'comorbidity' in needs_processing and needs_processing['comorbidity']:
 			comor_f = util.select_file(files, 'comorbiditeit')
+			rows, fields = util.import_data(comor_f, delim=self.delim)
 			comor_headers = self.insert_data(
-									comor_f, 
+									rows, fields, 
 									'omschrijving', 
 									['begindatum', 'einddatum'],
 									'.+', None,
@@ -86,8 +87,9 @@ class PreProcess():
 		# gather data from lab results csv
 		if 'lab_results' in needs_processing and needs_processing['lab_results']:
 			lab_f = util.select_file(files, 'bepaling')
+			rows, fields = util.import_data(lab_f, delim=self.delim)
 			lab_headers = self.insert_data(
-									lab_f, 
+									rows, fields, 
 									'code', 
 									['datum', 'datum'], 
 									'.+', None,
@@ -197,13 +199,23 @@ class PreProcess():
 		for key in to_remove:
 			del self.id2data[key] 
 
+	def generate_lab_attributes(self, original_code, suffix):
+		'''generates abstracted lab attributes, such as increasing HB, or low HB'''
+		
+
+	def generate_attributes(self, original_code, limit, suffix, src=''):
+		'''Generate the attributes. In the most simple case
+			this is a single attribute, namely the code + the 
+			specified suffix.'''
+		return [self.generate_code(original_code, limit) + '_' + suffix]
+
 	def move_target_to_end_of_list(self):
 		'''moves first data value to end of list for each instance in dictionary d'''
 		for k in self.id2data:
 			data = self.id2data[k]['data']
 			data.append(data.pop(0))
 
-	def	save_output(self, benchmark=False, include_headers=True, sub_dir='', name='unnamed'):
+	def	save_output(self, benchmark=False, sequence_file=False, sub_dir='', name='unnamed', target=False):
 		'''saves processed data to the specified output directory'''
 
 		# possibly make new directories
@@ -212,17 +224,27 @@ class PreProcess():
 
 		f_out = out_dir + name + '.csv'
 		out = write_csv(f_out)
-
-		# write headers if required
-		if include_headers:
-			if not benchmark:
-				out.writerow(self.headers)
-			else:
-				out.writerow(self.headers[0:3] + self.headers[-1:])
+		
+		# write headers where required
+		if benchmark:
+			out.writerow(self.headers[0:3])
+		elif target:
+			out.writerow([self.headers[0], self.headers[-1]])
+		elif sequence_file:
+			pass
+		else:
+			out.writerow([self.headers[0]] + self.headers[3:-1])
+			
 
 		# write data
 		for value in self.id2data.values():
 			data = value['data']
 			if benchmark:
-				data = data[0:3] + data[-1:]
+				data = data[0:3]
+			elif target:
+				data = [data[0], data[-1]]
+			elif sequence_file:
+				pass
+			else:
+				data = [data[0]] + data[3:-1]
 			out.writerow(data)

@@ -51,3 +51,23 @@ def get_current_datetime():
 	t = str(now.time())[:-7]
 	now = ('D' + d + '-T' + t).replace(':', '-')
 	return now
+
+def get_dict_val(dct, key, default=None):
+	'''returns the value in dct[key]. If key is not in dct, returns default'''
+	return dct[key] if key in dct else default
+
+def tkinter2var(d):
+	'''return a new dict with the tkinter variables converted to the actual humn-readable variables'''
+	result = dict()
+	for k in d:
+		if type(d[k]) == dict:
+			result[k] = tkinter2var(d[k])
+		else:
+			try:
+				result[k] = d[k].get()
+			except:
+				print d[k]
+				pass
+	return result
+
+	

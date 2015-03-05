@@ -7,21 +7,27 @@ from date_math import get_dates, str2date
 import util_.util as util
 
 class SequenceProcess(PreProcess):
+	'''class describing sequential/temporal way of preprocessing 
+		the data by analyzing patterns of data concepts'''
 
-	def insert_data(self, f, code_column, date_column, regex_string, limit, suffix='', incorporate_SOEP=False):
+	def insert_data(self, rows, headers, code_column, date_column, regex_string, limit, suffix='', incorporate_SOEP=False):
 		'''inserts data from the specified csv and corresponding columns'''
 
 		# make convenient reference to the dictionary
 		dct = self.id2data
 
-		# get data and corresponding headers
-		rows, headers = util.import_data(f, delim=self.delim)
+		# # get data and corresponding headers
+		# rows, headers = util.import_data(f, delim=self.delim)
 
 		# get the index of the relevant columns
 		ID_idx = headers.index(self.ID_column)
 		code_idx = headers.index(code_column)
 		b_date_idx = headers.index(date_column[0])
 		e_date_idx = headers.index(date_column[1])
+		if suffix == 'lab_results':
+			val_idx = headers.index('waarde')
+			min_idx = headers.index('referentie_minimum')
+			max_idx = headers.index('referentie_maximum')
 		if incorporate_SOEP:
 			SOEP_idx = headers.index(incorporate_SOEP)
 
@@ -45,16 +51,27 @@ class SequenceProcess(PreProcess):
 			e_date = str2date(row[e_date_idx], give_default_end=True) # end of event
 			b_reg = dct[key]['CRC_dates'][3] # beginning of registration
 			e_reg = dct[key]['CRC_dates'][4] # ending of registration
-			code = row[code_idx].upper().strip()[0:limit] + '_' + suffix
+			original_code = row[code_idx]
+			truncated_code = self.generate_code(original_code, limit) 
 
-			# if in the required interval (either beginninf or ending date) AND code is valid
-			if ( (b_reg <= b_date and b_date <= e_reg) or (b_reg <= e_date and e_date <= e_reg) ) and pattern.match(code):
+			# if in the required interval (either beginning or ending date) AND code is valid
+			if ( (b_reg <= b_date and b_date <= e_reg) or (b_reg <= e_date and e_date <= e_reg) ) and pattern.match(truncated_code):
 				
-				# if we need to take the SOEP code of consuls into account
+				# if we need to take the SOEP code of consults into account
 				if (not incorporate_SOEP) or (incorporate_SOEP and row[SOEP_idx] == 'E'):
-				
-					# insert a StateInterval object with the specified parameters
-					self.insert_state_interval(key, code, b_date, e_date)
+
+					# generate attribute names
+					if suffix == 'lab_results':
+						attributes = self.generate_lab_attributes(original_code, suffix)
+					else:
+						attributes = self.generate_attributes(original_code, limit, suffix, src=code_column)
+
+					# this loop allows multiple attributes to be created in the previous code line
+					# this allows for other classes to subclass this class, e.g. SequenceEnrichProcess
+					for attr in attributes:
+
+						# insert a StateInterval object with the specified parameters
+						self.insert_state_interval(key, attr, b_date, e_date)
 
 		# to satisfy return value requirement for  the method 'process' in the superclass
 		return []
@@ -74,6 +91,11 @@ class SequenceProcess(PreProcess):
 			dynamic_seq = sequence[3:]
 			dynamic_seq.sort(key=attrgetter('begin', 'end', 'state'))
 			self.id2data[k] = static_seq + dynamic_seq + crc
+	
+	def generate_code(self, code, limit):
+		'''generates the required part of the code in a field, 
+			e.g. atc code A01 in field A01B234'''
+		return code.upper().strip()[0:limit]
 
 if __name__ == '__main__':
 	import sys
