@@ -162,6 +162,7 @@ class EnrichTab(PipelineTab):
 			int(dct['min_age'].get()),
 			int(dct['max_age'].get()),
 			[int(dct['end_interval'].get()), int(dct['begin_interval'].get())],
+			True if dct['in_dir'].get().lower() == 'sql' else False,
 			dct['mapping_dir'].get()]
 		
 		needs_processing = {'comorbidity': 0,

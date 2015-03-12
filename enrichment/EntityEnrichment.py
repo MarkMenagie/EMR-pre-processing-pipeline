@@ -3,11 +3,11 @@ import re
 class EntityEnrichment():
 	'''Abstract class for semantic enrichment'''
 
-	def enrich(self, src):
+	def enrich(self, data_src):
 		'''enrich input'''
-		if src.lower() != 'sql':
+		if data_src.lower() != 'sql':
 			result = self.enrich_from_file(data_src)
-		elif src.lower() == 'sql':
+		elif data_src.lower() == 'sql':
 			result = self.enrich_from_sql()
 		return result
 

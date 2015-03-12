@@ -27,9 +27,10 @@ class ATC(EntityEnrichment):
 
 	def enrich_from_sql(self):
 		'''enrich using a database as source'''
-		rows = util.sql_connect().cursor()
-		rows.execute('''SELECT med.atc_code FROM medicaties med''')
+		cursor = util.sql_connect().cursor()
+		cursor.execute('''SELECT atc_code FROM medicaties''')
 		idx = 0 # we query only ATC codes
+		return self.atc_enrichment(cursor, idx)
 
 	def atc_enrichment(self, rows, idx):
 		concepts = self.filter_concepts(rows, idx)

@@ -54,10 +54,14 @@ class AbstractEndpoint(SPARQLWrapper):
 			results = self.execute()
 		except URLError, e:
 			print e, '...trying again'
-		# except:
-		# 	print 'unknown error occurred. waiting and continuing'
-		# 	time.sleep(self.EXECUTE_WAIT)
-		# 	results = self.execute()
+			time.sleep(self.EXECUTE_WAIT)
+			results = self.execute()
+		except Exception, e:
+			# print 'unknown error occurred. waiting and continuing'
+			print 'error msg:', e, '... waiting and continuing'
+			time.sleep(self.EXECUTE_WAIT)
+			results = self.execute()
+		print 'retrieved results and returning'
 		return results
 
 	def add(self, dct, key, val):
@@ -224,10 +228,11 @@ class Sider(AbstractEndpoint):
 		'''instantiate a sider object '''
 		url = 'http://wifo5-04.informatik.uni-mannheim.de/sider/sparql'
 		AbstractEndpoint.__init__(self, url, query_head, query_foot)
-		
+		self.MAX_QUERY_SIZE = 500
+
 	def batch_query(self, uris, dict_type):
 		'''queries sider for uri to side effects'''
-		print '...querying sider'
+		print '...querying sider for {} concepts'.format(len(uris))
 
 		uri2x = defaultdict(dict_type)	
 		new_uris = set()		
@@ -238,6 +243,7 @@ class Sider(AbstractEndpoint):
 			q = self.query_head + uris_str + self.query_foot
 			self.setQuery(q)
 			results = self.execute()
+			print '... query {} percent complete'.format(float(i)/len(uris)*100)
 
 			for result in results['results']['bindings']:
 				key = result['key']['value'].split('/')[-1]

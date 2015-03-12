@@ -2,6 +2,7 @@ import util_.in_out as io
 import util_.util as util
 import endpoints
 from EntityEnrichment import EntityEnrichment
+import re
 
 class ICPC(EntityEnrichment):
 
@@ -26,14 +27,19 @@ class ICPC(EntityEnrichment):
 
 	def enrich_from_sql(self):
 		'''enrich using a database as source'''
-		rows = util.sql_connect().cursor()
-		rows.execute('''SELECT j.icpc FROM journalen j WHERE soepcode == "E" ''')
+		cursor = util.sql_connect().cursor()
+		cursor.execute('''SELECT substr(icpc,1,3) FROM journalen WHERE soepcode = 'E' ''')
 		idx = 0 # we query only ICPC codes
+		return self.icpc_enrichment(cursor, idx, from_sql=True)
 
-	def icpc_enrichment(self, rows, idx):
-		
-		concepts = self.filter_concepts(
-			rows, idx, consider_SOEP=(0,'E'), regex_string='[A-Z][0-9][0-9]', limit=3)
+	def icpc_enrichment(self, rows, idx, from_sql=False):
+		if from_sql:
+			pattern = re.compile('[A-Z][0-9][0-9]')
+			concepts = self.filter_concepts(rows, idx)
+			concepts = [c for c in concepts if pattern.match(c)]
+		else:
+			concepts = self.filter_concepts(
+				rows, idx, consider_SOEP=(0,'E'), regex_string='[A-Z][0-9][0-9]', limit=3)
 
 		self.code2manifestation_of = self.manifestation_of_enrichment(concepts)
 		self.code2association = self.association_enrichment(concepts)

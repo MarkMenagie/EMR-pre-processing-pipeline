@@ -10,8 +10,8 @@ class StandardEnrichProcess(StandardProcess):
 		data is used, such as using side effects instead of
 		medication.'''
 
-	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, mapping_files_dir):
-		StandardProcess.__init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval)
+	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql, mapping_files_dir):
+		StandardProcess.__init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql)
 		
 		# dict of enrichment dicts which describe the transformation from a code to some abstraction
 		self.code2x_dict = fill_enrichment_dicts(mapping_files_dir)
@@ -29,8 +29,8 @@ class SequenceEnrichProcess(SequenceProcess):
 		data is used, such as using side effects instead of
 		medication.'''
 
-	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, mapping_files_dir):
-		SequenceProcess.__init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval)
+	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql, mapping_files_dir):
+		SequenceProcess.__init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql)
 		
 		# list of enrichments dicts which describe the transformation from a code to some abstraction
 		self.code2x_dict = fill_enrichment_dicts(mapping_files_dir)
@@ -57,7 +57,7 @@ def generate_enriched_attributes(code, limit, suffix, src, code2, ParentClass, p
 
 		return effects + indications + ingredients
 	elif src == 'icpc':
-		print code, limit, suffix, src
+		# print code, limit, suffix, src
 
 	 	manifestationof = util.get_dict_val(code2['manifestationof'], code, default=[])
 		manifestationof = [m + '_manifestationof' for m in manifestationof]
