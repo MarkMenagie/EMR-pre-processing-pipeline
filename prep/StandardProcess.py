@@ -98,7 +98,7 @@ class StandardProcess(PreProcess):
 						# this loop allows multiple attributes to be created in the previous code line
 						# this allows for other classes to subclass this class, e.g. StandardEnrichProcess
 						for attr in attributes:
-							print truncated_code, attr
+							# print truncated_code, attr
 							# check if attribute name and ID instance already exist, if not, make them
 							util.init_key(attribute2ids, attr, dict())
 							util.init_key(attribute2ids[attr], key, 0)

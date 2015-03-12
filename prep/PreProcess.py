@@ -2,11 +2,12 @@ import re
 from date_math import generate_patient_interval, generate_random_patient_interval, str2date
 from util_.in_out import write_csv
 import util_.util as util
+import util_.sql as sql
 
 class PreProcess():
 	'''abstract class describing basic functionality of the preprocessing phase'''
 
-	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval):
+	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql):
 		self.in_dir = in_dir
 		self.delim = delim # delimiter of input file (default ',')
 		self.out_dir = out_dir
@@ -15,24 +16,169 @@ class PreProcess():
 		self.max_age = max_age 
 		self.interval = interval # interval of data we deem relevant
 		self.id2data = dict() # dict describing all data instances
+		self.from_sql = from_sql
 
 	def insert_data(self, f, code_column, date_column, regex_string, limit, suffix='', incorporate_SOEP=False):
 		'''abstract method to be implemented by subclass'''
 		print 'abstract method "insert_data" called by', type(self)
 
 	def process(self, needs_processing):
-		'''converts all input csv's to usable data'''
+		'''process using the specified source'''
+		if self.from_sql:
+			result = self.process_sql(needs_processing)
+		else:
+			result = self.process_csv(needs_processing)
+		return result
+
+	def process_sql(self, needs_processing):
+		'''converts the specified sql tables to usable data'''
+
+		# connect to database and get a cursor handle
+		cursor = util.sql_connect().cursor()
+		
+		# put the IDs of the 'main' file in a dict
+		headers = self.get_IDs_sql(cursor)
+
+		# add CRC value to each patient
+		self.get_CRC_occurrences_sql(cursor)
+
+		# randomize dates
+		self.insert_data_intervals()
+
+		# gather data from medication csv
+		if 'medication' in needs_processing and needs_processing['medication']:
+			fields = ['patientnummer', 'atc_code', 'voorschrijfdatum'] # make headers
+			fields_str = ','.join(fields) # fields to comma-separated string
+
+			# build query, execute
+			query = 'SELECT {} FROM medicaties'.format(fields_str)
+			cursor.execute(query)
+
+			med_headers, self.num_med, self.num_med_pos = self.insert_data(
+									cursor, fields, 
+									'atc_code', 
+									['voorschrijfdatum', 'voorschrijfdatum'], 
+									'[A-Z][0-9][0-9]', 3,
+									suffix='atc')
+			headers = headers + med_headers
+
+		# gather data from consult csv
+		if 'consults' in needs_processing and needs_processing['consults']:
+			fields = ['patientnummer', 'soepcode', 'icpc', 'datum'] # make headers
+			fields_str = ','.join(fields) # fields to comma-separated string
+
+			# build query, execute
+			query = 'SELECT {} FROM journalen'.format(fields_str)
+			cursor.execute(query)
+
+			consult_headers, self.num_cons, self.num_cons_pos = self.insert_data(
+									rows, fields, 
+									'icpc', 
+									['datum', 'datum'], 
+									'[A-Z][0-9][0-9]', 3,
+									incorporate_SOEP='soepcode')
+			headers = headers + consult_headers
+
+		# gather data from referral csv
+		if 'referrals' in needs_processing and needs_processing['referrals']:
+			fields = ['patientnummer', 'specialisme', 'datum'] # make headers
+			fields_str = ','.join(fields) # fields to comma-separated string
+
+			# build query, execute
+			query = 'SELECT {} FROM doorverwijzingen'.format(fields_str)
+			cursor.execute(query)
+
+			ref_headers,_,_ = self.insert_data(
+									rows, fields, 
+									'specialisme', 
+									['datum', 'datum'], 
+									'.*', None)
+			headers = headers + ref_headers
+
+		# gather data from comorbidity csv
+		if 'comorbidity' in needs_processing and needs_processing['comorbidity']:
+			fields = ['patientnummer', 'omschrijving', 'begindatum', 'einddatum'] # make headers
+			fields_str = ','.join(fields) # fields to comma-separated string
+
+			# build query, execute
+			query = 'SELECT {} FROM journalen'.format(fields_str)
+			cursor.execute(query)
+
+			comor_headers,_,_ = self.insert_data(
+									rows, fields, 
+									'omschrijving', 
+									['begindatum', 'einddatum'],
+									'.+', None,
+									suffix='comorbiditeit')
+			headers = headers + comor_headers
+
+		# gather data from lab results csv
+		if 'lab_results' in needs_processing and needs_processing['lab_results']:
+			fields = ['patientnummer', 'code', 'datum'] # make headers
+			fields_str = ','.join(fields) # fields to comma-separated string
+
+			# build query, execute
+			query = 'SELECT {} FROM journalen'.format(fields_str)
+			cursor.execute(query)
+
+			lab_headers, self.num_lab, self.num_lab_pos = self.insert_data(
+									rows, fields, 
+									'code', 
+									['datum', 'datum'], 
+									'.+', None,
+									suffix='lab_results')
+			headers = headers + lab_headers
+
+		# move CRC indicator to end of each instance data list
+		self.move_target_to_end_of_list()
+		
+		# append target element to headers, add to class var
+		headers.append('target')
+		self.headers = headers
+
+	def get_IDs_sql(self, cursor):
+		'''get the record IDs using SQL'''
+		
+		# make headers (hardcoded for now)
+		fields = ['geboortedatum', 'geslacht', 'inschrijfdatum', 'uitschrijfdatums', 'patientnummer']
+		fields_str = ','.join(fields)
+
+		# build query, execute
+		query = 'SELECT {} FROM PATIENTEN'.format(fields_str)
+		cursor.execute(query)
+
+		# start filling self.id2data
+		return self.get_IDs(cursor, fields)
+
+	def get_CRC_occurrences_sql(self, cursor):
+		'''set CRC cases using sql'''
+
+		# make headers (hardcoded for now)
+		fields = ['soepcode', 'icpc', 'datum', 'contactsoort', 'episode_omschrijving', 'episode_icpc', 'patientnummer']
+		fields_str = ','.join(fields)
+
+		# build query, execute
+		query = "SELECT {} FROM journalen WHERE soepcode = 'E' ".format(fields_str)
+		cursor.execute(query)
+
+		# further fill self.id2data
+		self.get_CRC_occurrences(cursor, fields)
+
+	def process_csv(self, needs_processing):
+		'''converts the specified csv's to usable data'''
 
 		# get all csv's in the input folder
 		files = util.list_dir_csv(self.in_dir)
 
 		# put the IDs of the 'main' file in a dict
 		ID_f = util.select_file(files, 'patient')
-		headers = self.get_IDs(ID_f)
+		rows, fields = util.import_data(ID_f, delim=self.delim)
+		headers = self.get_IDs(rows, fields)
 
 		# add CRC value to each patient
 		CRC_f = util.select_file(files, 'journaal')
-		self.get_CRC_occurrences(CRC_f)
+		rows, fields = util.import_data(CRC_f, delim=self.delim)
+		self.get_CRC_occurrences(rows, fields)
 
 		# randomize dates
 		self.insert_data_intervals()
@@ -103,12 +249,9 @@ class PreProcess():
 		headers.append('target')
 		self.headers = headers
 
-	def get_IDs(self, f):
+	def get_IDs(self, rows, headers):
 		'''sets all IDs as keys to a dict. Additionally adds gender/age data
 			and date registration data'''
-
-		# get data and corresponding headers
-		rows, headers = util.import_data(f, delim=self.delim)
 
 		# get the index of the relevant columns
 		ID_idx = headers.index(self.ID_column)
@@ -142,12 +285,9 @@ class PreProcess():
 
 		return ['ID', 'age', 'gender']
 
-	def get_CRC_occurrences(self, f):
+	def get_CRC_occurrences(self, rows, headers):
 		'''sets all CRC cases to initial diagnosis date values in 
 			id2data[patient][CRC_dates][0]'''
-
-		# get data and corresponding headers
-		rows, headers = util.import_data(f, delim=self.delim)
 
 		# get the index of the relevant columns
 		ID_idx = headers.index(self.ID_column)
@@ -232,33 +372,71 @@ class PreProcess():
 	def	save_output(self, benchmark=False, sequence_file=False, sub_dir='', name='unnamed', target=False):
 		'''saves processed data to the specified output directory'''
 
-		# possibly make new directories
-		out_dir = self.out_dir + '/' + sub_dir + '/'
-		util.make_dir(out_dir)
+		# if we didn't get the data from sql database, just save to .csv
+		if not self.from_sql:
 
-		f_out = out_dir + name + '.csv'
-		out = write_csv(f_out)
-		
-		# write headers where required
-		if benchmark:
-			out.writerow(self.headers[0:3])
-		elif target:
-			out.writerow([self.headers[0], self.headers[-1]])
-		elif sequence_file:
-			pass
-		else:
-			out.writerow([self.headers[0]] + self.headers[3:-1])
+			# possibly make new directories
+			out_dir = self.out_dir + '/' + sub_dir + '/'
+			util.make_dir(out_dir)
+
+			f_out = out_dir + name + '.csv'
+			out = write_csv(f_out)
 			
-
-		# write data
-		for value in self.id2data.values():
-			data = value['data']
+			# write headers where required
 			if benchmark:
-				data = data[0:3]
+				out.writerow(self.headers[0:3])
 			elif target:
-				data = [data[0], data[-1]]
+				out.writerow([self.headers[0], self.headers[-1]])
 			elif sequence_file:
 				pass
 			else:
-				data = [data[0]] + data[3:-1]
-			out.writerow(data)
+				out.writerow([self.headers[0]] + self.headers[3:-1])
+
+			# write data
+			for value in self.id2data.values():
+				data = value['data']
+				if benchmark:
+					data = data[0:3]
+				elif target:
+					data = [data[0], data[-1]]
+				elif sequence_file:
+					pass
+				else:
+					data = [data[0]] + data[3:-1]
+				out.writerow(data)
+		
+		else: # if we DID get the data from the sql database, we also want to save it there (i.e. create new tables)
+			tbl_name = 'AUTO_' + name
+			cursor = util.sql_connect().cursor()
+
+			if benchmark:
+				try:
+					init_query = 'CREATE TABLE {} ({} number(7), {} number(3), {} varchar2(10))'.format(tbl_name, headers[0], headers[1], headers[2])
+					fill_query = sql.make_filling_query(tbl_name, 1, 3, self.id2data.values())
+
+					# make table + columns
+					sql.new_table(cursor, init_query, fill_query)
+				except Exception, e:
+					print e
+			elif target:
+				try:
+					init_query = 'CREATE TABLE {} ({} number(7), {} varchar2(50))'.format(tbl_name, headers[0], headers[-1])
+					fill_query = sql.make_filling_query(tbl_name, -1, None, self.id2data.values())
+
+					# make table + columns
+					sql.new_table(cursor, init_query, fill_query)
+				except Exception, e:
+					print e
+			elif sequence_file:
+				pass
+			else:
+				try:
+					columns_str = ' NUMBER(3),'.join(self.headers[3:-1]) + ' NUMBER(3)'
+					init_query = 'CREATE TABLE {} ({} number(7), {})'.format(tbl_name, headers[0], columns_str)
+					
+					fill_query = sql.make_filling_query(tbl_name, 3, -1, self.id2data.values())
+
+					# make table + columns
+					sql.new_table(cursor, init_query, fill_query)
+				except Exception, e:
+					print e				

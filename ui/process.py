@@ -137,7 +137,8 @@ class ProcessTab(PipelineTab):
 				dct['ID_column'].get(),
 				int(dct['min_age'].get()),
 				int(dct['max_age'].get()),
-				[int(dct['end_interval'].get()), int(dct['begin_interval'].get())]]
+				[int(dct['end_interval'].get()), int(dct['begin_interval'].get())],
+				True if dct['in_dir'].get().lower() == 'sql' else False]
 
 		if dct['process_temporal'].get(): # process temporally
 			self.temporal(dct, now, args)
