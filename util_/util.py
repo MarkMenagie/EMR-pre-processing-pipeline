@@ -1,6 +1,7 @@
 from in_out import read_csv
 import os
 from datetime import datetime
+import cx_Oracle
 
 def import_data(f, delim=','):
 	'''import data and separates the column names from the data'''
@@ -15,10 +16,12 @@ def get_headers(row):
 	return headers
 
 def select_file(files, s):
-	'''returns the first file which contains the string s in the filename'''
+	'''returns the first file which contains the string s in the filename.
+		if no such file is found, returns -1'''
 	for f in files:
 		if s in f.split('/')[-1]:
 			return f
+	return -1
 
 def make_list_using_indices(row, indices):
 	'''returns the sublist of row corresponding to all indices'''
@@ -40,9 +43,20 @@ def append_slash(s):
 		s = s + '/'
 	return s
 
-def list_dir_csv(s):
-	'''returns a list of all csv's in a directory s'''
-	return [s + '/' + f for f in os.listdir(s) if f.endswith('.csv')]
+def list_dir_csv(s, skip_list=-1):
+	'''returns a list of all csv's in a directory s, optionally skipping a file
+		if one of a specified list of strings occurs in its filename'''
+	result = [s + '/' + f for f in os.listdir(s) if f.endswith('.csv')]
+	if skip_list != -1:
+		result = [el for el in result if not occurs_in(el, skip_list)]
+	return result
+
+def occurs_in(s, lst):
+	'''returns True if s occurs as a substring in the list of strings'''
+	for el in lst:
+		if el in s:
+			return True
+	return False
 
 def get_current_datetime():
 	'''returns the current datetime in a neat format'''
@@ -69,5 +83,11 @@ def tkinter2var(d):
 				print d[k]
 				pass
 	return result
+
+def sql_connect():
+	'''connects to the SQL database, returns server handle'''
+	return cx_Oracle.connect('datamart', 'datamart', '10.67.201.10:1521/XE')
+
+
 
 	

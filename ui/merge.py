@@ -44,15 +44,15 @@ class MergeTab(PipelineTab):
 
 		# get context dependent frame (regular)
 		no_selection_btn = Radiobutton(self, text='no feature selection', value='none', variable=selection_var)
-		no_selection_btn.grid(row=11, column=0, sticky=W)
+		no_selection_btn.grid(row=11, column=0, columnspan=2, sticky=W)
 
 		# get context dependent frame (temporal)
 		pre_selection_btn = Radiobutton(self, text='pre-merge selection', value='pre', variable=selection_var)
-		pre_selection_btn.grid(row=12, column=0, sticky=W)
+		pre_selection_btn.grid(row=12, column=0, columnspan=2, sticky=W)
 
 		# get context dependent frame (temporal)
 		post_selection_btn = Radiobutton(self, text='post-merge selection', value='post', variable=selection_var)
-		post_selection_btn.grid(row=13, column=0, sticky=W)
+		post_selection_btn.grid(row=13, column=0, columnspan=2, sticky=W)
 
 		# configure events, invoke one by default
 		no_selection_btn.invoke() # default

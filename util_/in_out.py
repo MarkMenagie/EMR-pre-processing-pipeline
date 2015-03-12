@@ -31,6 +31,18 @@ def get_file_name(path, extension=True):
 	
 	return f
 
+def dict2csv(d, f):
+	'''write a dictionary to csv format file'''
+	out = write_csv(f)
+	if len(d) == 0: 
+		return
+	if type(d.values()[0]) == list:
+		for k, v in d.iteritems():
+			out.writerow([k] + [str(el) for el in v])
+	else:
+		for k, v in d.iteritems():
+			out.writerow([k, v])
+
 def pprint_to_file(f_out, obj):
 	'''performs the pretty print operation to the specified file with the specified data object'''
 	with open (f_out, 'w') as out:

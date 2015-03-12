@@ -33,11 +33,10 @@ class Raw2Patterns(Raw2Processed):
 		self.buttons['comorbidity'] = self.comorbidity_btn
 		# self.comorbidity_btn.configure(command=lambda : self.no_knowledge(self.comorbidity))
 
-		self.lab_results, self.lab_results_btn = self.make_checkbutton(f, 'include lab results (N/A)', 5, 0)
+		self.lab_results, self.lab_results_btn = self.make_checkbutton(f, 'include lab results', 5, 0)
 		self.values['lab_results'] = self.lab_results
 		self.buttons['lab_results'] = self.lab_results_btn
 		# self.lab_results_btn.configure(command=lambda : self.no_knowledge(self.lab_results))
-		self.lab_results_btn.configure(state=DISABLED)
 
 		self.support_val, self.support = self.make_label(f, 'Min. support', 6, 0)
 		self.values['support'] = self.support_val

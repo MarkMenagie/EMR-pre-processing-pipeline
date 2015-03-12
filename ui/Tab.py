@@ -27,10 +27,11 @@ class PipelineTab(Tab):
 
 	### methods which add often occurring combinations of interface components using the grid layout ###
 
-	def button_component(self, button_txt, init_txt, r, c, help_txt=''):
+	def button_component(self, button_txt, init_txt, r, c, help_txt='', mode=NORMAL):
 		'''adds a button component associated with an entry (the label only activates when help_txt != '')'''
 		b = Button(self, text=button_txt)
 		b.grid(row=r, column=c, sticky=W+E)
+		b.config(state=mode)
 		dir_var = StringVar()
 		dir_var.set(init_txt)
 		Entry(self, textvariable=dir_var).grid(row=r, column=c+1)

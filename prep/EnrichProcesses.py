@@ -45,9 +45,9 @@ def generate_enriched_attributes(code, limit, suffix, src, code2, ParentClass, p
 	'''Generate enriched attributes.'''
 	# which source file are we currently investigating?
 	if src == 'atc_code': 
-		# get all medication enrichments, adding a suffix to each attribute identify the source
+		# get all medication enrichments, adding a suffix to each attribute
 		effects = util.get_dict_val(code2['effects'], code, default=[])
-		effects = [effect + '_side_effect' for effect in effects]
+		effects = [effect + '_effect' for effect in effects]
 
 		indications = util.get_dict_val(code2['indications'], code, default=[])
 		indications = [indication + '_indication' for indication in indications]
@@ -56,8 +56,16 @@ def generate_enriched_attributes(code, limit, suffix, src, code2, ParentClass, p
 		ingredients = [ingredient + '_ingredient' for ingredient in ingredients]
 
 		return effects + indications + ingredients
-	# elif src == 'icpc':
-	 	# diagnosis enrichments
+	elif src == 'icpc':
+		print code, limit, suffix, src
+
+	 	manifestationof = util.get_dict_val(code2['manifestationof'], code, default=[])
+		manifestationof = [m + '_manifestationof' for m in manifestationof]
+
+	 	association = util.get_dict_val(code2['association'], code, default=[])
+		association = [a + '_association' for a in association]
+
+	 	return manifestationof + association
 	# elif src == 'specialisme':
 		# referral enrichments
 	# elif src == 'omschrijving:'
@@ -76,19 +84,56 @@ def fill_enrichment_dicts(mapping_files_dir):
 	result = dict()
 
 	# read frequent effects, put effects in dict, put dict in result
-	rows = io.read_csv(mapping_files_dir + '/atc/effects_frequent.csv')
+	try:
+		rows = io.read_csv(mapping_files_dir + '/atc/effect_frequent.csv')
+	except:
+		rows = io.read_csv(mapping_files_dir + '/atc/effect.csv')		
 	code2effects = {row[0] : row[1:] for row in rows}
 	result['effects'] = code2effects
 
 	# read frequent indications, put indications in dict, put dict in result
-	rows = io.read_csv(mapping_files_dir + '/atc/indications_frequent.csv')
+	try:
+		rows = io.read_csv(mapping_files_dir + '/atc/indication_frequent.csv')
+	except:
+		try:
+			rows = io.read_csv(mapping_files_dir + '/atc/indication.csv')
+		except:
+			rows = []
 	code2indications = {row[0] : row[1:] for row in rows}
 	result['indications'] = code2indications
 
 	# read frequent ingredients, put ingredients in dict, put dict in result
-	rows = io.read_csv(mapping_files_dir + '/atc/ingredients_frequent.csv')
+	try:
+		rows = io.read_csv(mapping_files_dir + '/atc/ingredient_frequent.csv')
+	except:
+		try:
+			rows = io.read_csv(mapping_files_dir + '/atc/ingredient.csv')
+		except:
+			rows = []
 	code2ingredients = {row[0] : row[1:] for row in rows}
 	result['ingredients'] = code2ingredients
+
+	# read frequent manifestations of symptoms, put manifestations in dict, put dict in result
+	try:
+		rows = io.read_csv(mapping_files_dir + '/icpc/manifestationof_frequent.csv')
+	except:
+		try:
+			rows = io.read_csv(mapping_files_dir + '/icpc/manifestationof.csv')
+		except:
+			rows = []
+	code2manifestation_of = {row[0] : row[1:] for row in rows}
+	result['manifestationof'] = code2manifestation_of
+
+	# read frequent associations of symptoms/disorders, put manifestations in dict, put dict in result
+	try:
+		rows = io.read_csv(mapping_files_dir + '/icpc/association_frequent.csv')
+	except:
+		try:
+			rows = io.read_csv(mapping_files_dir + '/icpc/association.csv')
+		except:
+			rows = []
+	code2association = {row[0] : row[1:] for row in rows}
+	result['association'] = code2association
 
 	return result
 

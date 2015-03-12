@@ -1,6 +1,6 @@
 from Tkinter import Tk
 from ttk import Notebook
-from ui import ProcessTab, MergeTab, LearningTab, AboutTab
+from ui import ProcessTab, EnrichTab, MergeTab, LearningTab, AboutTab
 
 def init_UI():
 	'''create tabs and required content'''
@@ -13,6 +13,7 @@ def init_UI():
 	n = Notebook(main)
 
 	# initialize the various tabs
+	EnrichTab(n, 'Enrich', main)
 	ProcessTab(n, 'Process', main)
 	MergeTab(n, 'Merge', main)
 	LearningTab(n, 'Learn', main)

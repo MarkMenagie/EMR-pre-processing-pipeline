@@ -1,6 +1,8 @@
 
 from datetime import date,timedelta
-from random import random
+import random
+
+random.seed(100000)
 
 # generates a random patient interval betwee either the specified dates or, 
 # if more applicable, the prespecified, actual start- and enddates of 
@@ -22,7 +24,7 @@ def generate_random_patient_interval(patient_begin, patient_end, interval, verbo
 		return False
 
 	choose_from = max_begin - min_begin	
-	random_day = timedelta(days=int(random()*(choose_from.days+1)))
+	random_day = timedelta(days=int(random.random()*(choose_from.days+1)))
 
 	begin = min_begin + random_day
 	end = begin + (begin_measurement-end_measurement)

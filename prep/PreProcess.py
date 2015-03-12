@@ -41,7 +41,7 @@ class PreProcess():
 		if 'medication' in needs_processing and needs_processing['medication']:
 			med_f = util.select_file(files, 'medicatie')
 			rows, fields = util.import_data(med_f, delim=self.delim)
-			med_headers = self.insert_data(
+			med_headers, self.num_med, self.num_med_pos = self.insert_data(
 									rows, fields, 
 									'atc_code', 
 									['voorschrijfdatum', 'voorschrijfdatum'], 
@@ -53,7 +53,7 @@ class PreProcess():
 		if 'consults' in needs_processing and needs_processing['consults']:
 			consult_f = util.select_file(files, 'journaal')
 			rows, fields = util.import_data(consult_f, delim=self.delim)
-			consult_headers = self.insert_data(
+			consult_headers, self.num_cons, self.num_cons_pos = self.insert_data(
 									rows, fields, 
 									'icpc', 
 									['datum', 'datum'], 
@@ -65,7 +65,7 @@ class PreProcess():
 		if 'referrals' in needs_processing and needs_processing['referrals']:
 			ref_f = util.select_file(files, 'verwijzing')
 			rows, fields = util.import_data(ref_f, delim=self.delim)
-			ref_headers = self.insert_data(
+			ref_headers,_,_ = self.insert_data(
 									rows, fields, 
 									'specialisme', 
 									['datum', 'datum'], 
@@ -76,7 +76,7 @@ class PreProcess():
 		if 'comorbidity' in needs_processing and needs_processing['comorbidity']:
 			comor_f = util.select_file(files, 'comorbiditeit')
 			rows, fields = util.import_data(comor_f, delim=self.delim)
-			comor_headers = self.insert_data(
+			comor_headers,_,_ = self.insert_data(
 									rows, fields, 
 									'omschrijving', 
 									['begindatum', 'einddatum'],
@@ -88,7 +88,7 @@ class PreProcess():
 		if 'lab_results' in needs_processing and needs_processing['lab_results']:
 			lab_f = util.select_file(files, 'bepaling')
 			rows, fields = util.import_data(lab_f, delim=self.delim)
-			lab_headers = self.insert_data(
+			lab_headers, self.num_lab, self.num_lab_pos = self.insert_data(
 									rows, fields, 
 									'code', 
 									['datum', 'datum'], 
@@ -199,9 +199,8 @@ class PreProcess():
 		for key in to_remove:
 			del self.id2data[key] 
 
-	def generate_lab_attributes(self, original_code, suffix):
-		'''generates abstracted lab attributes, such as increasing HB, or low HB'''
-		
+	# def generate_lab_attributes(self, original_code, suffix):
+	# 	'''generates abstracted lab attributes, such as increasing HB, or low HB'''
 
 	def generate_attributes(self, original_code, limit, suffix, src=''):
 		'''Generate the attributes. In the most simple case
@@ -210,10 +209,25 @@ class PreProcess():
 		return [self.generate_code(original_code, limit) + '_' + suffix]
 
 	def move_target_to_end_of_list(self):
-		'''moves first data value to end of list for each instance in dictionary d'''
+		'''moves first data value to end of list for each instance in data dictionary'''
 		for k in self.id2data:
 			data = self.id2data[k]['data']
 			data.append(data.pop(0))
+
+	def make_lab_values(self, val, min_val, max_val):
+		try:
+			val = float(val.replace(',', '.'))
+		except ValueError:
+			val = ''
+		try:
+			min_val = float(min_val.replace(',', '.'))
+		except ValueError:
+			min_val = ''
+		try:
+			max_val = float(max_val.replace(',', '.'))
+		except ValueError:
+			max_val = ''
+		return val, min_val, max_val
 
 	def	save_output(self, benchmark=False, sequence_file=False, sub_dir='', name='unnamed', target=False):
 		'''saves processed data to the specified output directory'''

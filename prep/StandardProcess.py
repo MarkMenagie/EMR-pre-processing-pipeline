@@ -37,14 +37,22 @@ class StandardProcess(PreProcess):
 		# regex pattern to match (ATC/ICPC standards)
 		pattern = re.compile(regex_string)
 
+		# keep track of number of times the row is attributed to a positive CRC patient (or patient where the target instance = 'positive')
+		num_pos = 0
+		num_total = 0
+
 		# iterate over all instances, making a new dict with the new attributes as keys
 		attribute2ids = dict()
 		for row in rows:
+			num_total+=1
 
 			# if key is not in the data dictionary, we skip it
 			key = int(row[ID_idx])
 			if not key in dct:
 				continue
+
+			if dct[key]['CRC_dates'][0] != 'negative':
+				num_pos+=1
 
 			# init other vars
 			date = str2date(row[date_idx])
@@ -53,18 +61,7 @@ class StandardProcess(PreProcess):
 			original_code = row[code_idx]
 			truncated_code = self.generate_code(original_code, limit)
 			if suffix == 'lab_results':
-				try:
-					val = float(row[val_idx].replace(',', '.'))
-				except ValueError:
-					val = ''
-				try:
-					min_val = float(row[min_idx].replace(',', '.'))
-				except ValueError:
-					min_val = ''
-				try:
-					max_val = float(row[max_idx].replace(',', '.'))
-				except ValueError:
-					max_val = ''
+				val, min_val, max_val = self.make_lab_values(row[val_idx], row[min_idx], row[max_idx])
 				if val == '':
 					continue
 
@@ -101,7 +98,7 @@ class StandardProcess(PreProcess):
 						# this loop allows multiple attributes to be created in the previous code line
 						# this allows for other classes to subclass this class, e.g. StandardEnrichProcess
 						for attr in attributes:
-
+							print truncated_code, attr
 							# check if attribute name and ID instance already exist, if not, make them
 							util.init_key(attribute2ids, attr, dict())
 							util.init_key(attribute2ids[attr], key, 0)
@@ -118,7 +115,7 @@ class StandardProcess(PreProcess):
 					# the values are sorted before abstraction
 					points = sorted(list(set(points)))
 
-					# abstract the values and append to the current patient's sequence
+					# abstract the values and count the occurrences per measurement-trend per patient
 					# if only 1 measurement was done, we cannot do time series analysis
 					if len(points) > 1 and ID in dct: 
 						abstractions = abstracts.get_trends(k, points)
@@ -127,7 +124,8 @@ class StandardProcess(PreProcess):
 							util.init_key(attribute2ids, attr, dict())
 							util.init_key(attribute2ids[attr], ID, 0)
 							attribute2ids[attr][ID] += 1
-
+		# print len(attribute2ids)
+		# print attribute2ids.keys()[0:5]
 		
 		# add data to each instance
 		for ID in dct:
@@ -142,7 +140,7 @@ class StandardProcess(PreProcess):
 					data.append(0)
 
 		# return the keys to be used as headers when writing the processed data
-		return attribute2ids.keys()
+		return attribute2ids.keys(), num_total, num_pos
 
 	def generate_code(self, code, limit):
 		'''generates the required part of the code in a field, 
