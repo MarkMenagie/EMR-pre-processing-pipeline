@@ -55,10 +55,12 @@ class StandardProcess(PreProcess):
 				num_pos+=1
 
 			# init other vars
-			date = str2date(row[date_idx])
+			date = str2date(row[date_idx], give_default_begin=True)
 			begin = dct[key]['CRC_dates'][3]
 			end = dct[key]['CRC_dates'][4]
 			original_code = row[code_idx]
+			if original_code == None:
+				continue
 			truncated_code = self.generate_code(original_code, limit)
 			if suffix == 'lab_results':
 				val, min_val, max_val = self.make_lab_values(row[val_idx], row[min_idx], row[max_idx])
@@ -145,6 +147,7 @@ class StandardProcess(PreProcess):
 	def generate_code(self, code, limit):
 		'''generates the required part of the code in a field, 
 			e.g. atc code A01 in field A01B234'''
+		if code == None: code = ''
 		return code.upper().strip()[0:limit]
 
 if __name__ == '__main__':

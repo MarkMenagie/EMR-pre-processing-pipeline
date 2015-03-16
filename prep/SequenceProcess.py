@@ -53,6 +53,8 @@ class SequenceProcess(PreProcess):
 			b_reg = dct[key]['CRC_dates'][3] # beginning of registration
 			e_reg = dct[key]['CRC_dates'][4] # ending of registration
 			original_code = row[code_idx]
+			if original_code == None:
+				continue
 			truncated_code = self.generate_code(original_code, limit) 
 			if suffix == 'lab_results':
 				val, min_val, max_val = self.make_lab_values(row[val_idx], row[min_idx], row[max_idx])

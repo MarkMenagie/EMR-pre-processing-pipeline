@@ -2,6 +2,7 @@ from in_out import read_csv
 import os
 from datetime import datetime
 import cx_Oracle
+from prep.date_math import str2date
 
 def import_data(f, delim=','):
 	'''import data and separates the column names from the data'''
@@ -87,7 +88,4 @@ def tkinter2var(d):
 def sql_connect():
 	'''connects to the SQL database, returns server handle'''
 	return cx_Oracle.connect('datamart', 'datamart', '10.67.201.10:1521/XE')
-
-
-
 	

@@ -73,7 +73,7 @@ class ProcessTab(PipelineTab):
 		# configure events, invoke one by default
 		reg_button.configure(command=lambda : self.set_frame(regular_frame, temporal_frame))
 		tmprl_button.configure(command=lambda : self.set_frame(temporal_frame, regular_frame))
-		tmprl_button.invoke() # default
+		reg_button.invoke() # default
 		
 		dct['process_temporal'] = temporal_processing_flag
 		dct['a-temporal_specific'] = regular.get_values()
@@ -88,13 +88,13 @@ class ProcessTab(PipelineTab):
 		'''set the user_input dict to default values'''
 		dct = self.user_input
 
-		dct['in_dir'].set('/Users/Reiny/Documents/UI_CRC/playground')
+		dct['in_dir'].set('sql')
 		dct['delimiter'].set(',')
-		dct['out_dir'].set('/Users/Reiny/Documents/UI_CRC/out')
-		dct['min_age'].set(18)
+		dct['out_dir'].set('./out')
+		dct['min_age'].set(30)
 		dct['max_age'].set(150)
-		dct['begin_interval'].set(int(365./52*38))
-		dct['end_interval'].set(int(365./52*12))
+		dct['begin_interval'].set(int(365./52*26+1))
+		dct['end_interval'].set(int(365./52*0+1))
 		dct['ID_column'].set('patientnummer')
 		dct['temporal_specific']['support'].set(0.1)
 		dct['mapping_dir'].set('../out/semantics_preliminary/')
@@ -106,19 +106,19 @@ class ProcessTab(PipelineTab):
 
 		button.config(text='Running', state=DISABLED)
 		if dct['in_dir'].get() == 'input folder':
-			dct['in_dir'].set('/Users/Reiny/Documents/UI_CRC/playground')
+			dct['in_dir'].set('sql')
 		if dct['delimiter'].get() == '':
 			dct['delimiter'].set(',')
 		if dct['out_dir'].get() == 'output folder':
-			dct['out_dir'].set('/Users/Reiny/Documents/UI_CRC/out')
+			dct['out_dir'].set('./out')
 		if dct['min_age'].get() == '':
-			dct['min_age'].set(18)
+			dct['min_age'].set(30)
 		if dct['max_age'].get() == '':
 			dct['max_age'].set(150)
 		if dct['begin_interval'].get() == '':
-			dct['begin_interval'].set(int(365./52*38))
+			dct['begin_interval'].set(int(365./52*26+1))
 		if dct['end_interval'].get() == '':
-			dct['end_interval'].set(int(365./52*12))
+			dct['end_interval'].set(int(365./52*0+1))
 		if dct['ID_column'].get() == '':
 			dct['ID_column'].set('patientnummer')
 		if dct['temporal_specific']['support'].get() == '':
@@ -126,10 +126,11 @@ class ProcessTab(PipelineTab):
 		if dct['mapping_dir'].get() == 'semantic enrichment dir':
 			dct['mapping_dir'].set('../out/semantics_preliminary/')
 
+
 		self.master.update_idletasks()
 
 		now = util.get_current_datetime()
-		util.make_dir(dct['out_dir'].get() + '/' + now)
+		util.make_dir(dct['out_dir'].get() + '/' + now + '/')
 
 		args = [dct['in_dir'].get(), 
 				dct['delimiter'].get(),
@@ -144,10 +145,14 @@ class ProcessTab(PipelineTab):
 			self.temporal(dct, now, args)
 		else: # process atemporally
 			self.regular(dct, now, args)
-		
-		pretty_dct = util.tkinter2var(dct)
-		io.pprint_to_file(dct['out_dir'].get() + '/' + now + '/settings.txt', pretty_dct)
 
+		pretty_dct = util.tkinter2var(dct)
+		try:
+			io.pprint_to_file(dct['out_dir'].get() + '/' + now + '/settings.txt', pretty_dct)
+		except IOError, e:
+			print e
+
+		print '### Done processing ###'
 		button.config(text='Done')
 		self.master.update_idletasks()
 		time.sleep(0.5)	
@@ -172,11 +177,12 @@ class ProcessTab(PipelineTab):
 			seq_p.process(needs_processing)
 			seq_p.save_output(sequence_file=True, sub_dir='data/tmprl', name=name)
 
+			generate_pattern_occurrences_per_patient(out_dir, seq_p.id2data, min_sup)
 			sequence_f = out_dir + '/tmprl/{}.csv'.format(name)
 		else:
 			sequence_f = dct['temporal_specific']['sequence_file'].get()
-
-		generate_pattern_occurrences_per_patient(out_dir, sequence_f, min_sup)
+		# hier generaten met als extra input headers(?)/id2data
+			generate_pattern_occurrences_per_patient(out_dir, sequence_f, min_sup)
 
 	def regular(self, dct, now, args):	
 		needs_processing = {k : bool(v.get()) for k, v in dct['a-temporal_specific'].iteritems()}
@@ -185,10 +191,10 @@ class ProcessTab(PipelineTab):
 			std_p = StandardEnrichProcess(*args, mapping_files_dir=dct['mapping_dir'].get())
 			std_p.process(needs_processing)
 			std_p.save_output(name='counts_enriched', sub_dir='data')
-		
-		std_p = StandardProcess(*args)
-		std_p.process(needs_processing)
-		std_p.save_output(name='counts', sub_dir='data')
+		else:
+			std_p = StandardProcess(*args)
+			std_p.process(needs_processing)
+			std_p.save_output(name='counts', sub_dir='data')
 
 		std_p.save_output(benchmark=True, sub_dir='data', name='age+gender')
 		std_p.save_output(target=True, sub_dir='data', name='target')
