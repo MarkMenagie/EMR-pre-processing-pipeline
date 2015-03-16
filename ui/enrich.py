@@ -62,17 +62,17 @@ class EnrichTab(PipelineTab):
 		dct = self.user_input
 
 		# dct['out_dir'].set('out/enrichment/')
-		dct['in_dir'].set('/Users/Reiny/Documents/UI_CRC/playground')
-		dct['mapping_dir'].set('out/enrichment/')
+		dct['in_dir'].set('sql')
+		dct['mapping_dir'].set('../enrichment_backup_full/')
 		dct['delimiter'].set(',')
-		dct['min_age'].set(18)
+		dct['min_age'].set(30)
 		dct['max_age'].set(150)
-		dct['begin_interval'].set(int(365./52*38))
-		dct['end_interval'].set(int(365./52*12))
+		dct['begin_interval'].set(int(365./52*26+1))
+		dct['end_interval'].set(int(365./52*0+1))
 		dct['ID_column'].set('patientnummer')
 		dct['alpha'].set(0.2)
-		dct['ATC'].set(False)
-		dct['ICPC'].set(True)
+		dct['ATC'].set(True)
+		dct['ICPC'].set(False)
 		dct['Lab'].set(False)
 
 	def sparql_extraction(self,button):

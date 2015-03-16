@@ -55,17 +55,17 @@ def generate_enriched_attributes(code, limit, suffix, src, code2, ParentClass, p
 		ingredients = util.get_dict_val(code2['ingredients'], code, default=[])
 		ingredients = [ingredient + '_ingredient' for ingredient in ingredients]
 
-		return effects + indications + ingredients
-	elif src == 'icpc':
-		# print code, limit, suffix, src
+		return effects + indications + ingredients# + ParentClass.generate_attributes(process_instance, code, limit, suffix, src) # 'super' class call
+	# elif src == 'icpc':
+	# 	# print code, limit, suffix, src
 
-	 	manifestationof = util.get_dict_val(code2['manifestationof'], code, default=[])
-		manifestationof = [m + '_manifestationof' for m in manifestationof]
+	#  	manifestationof = util.get_dict_val(code2['manifestationof'], code, default=[])
+	# 	manifestationof = [m + '_manifestationof' for m in manifestationof]
 
-	 	association = util.get_dict_val(code2['association'], code, default=[])
-		association = [a + '_association' for a in association]
+	#  	association = util.get_dict_val(code2['association'], code, default=[])
+	# 	association = [a + '_association' for a in association]
 
-	 	return manifestationof + association
+	#  	return manifestationof + association + ParentClass.generate_attributes(process_instance, code, limit, suffix, src) # 'super' class call
 	# elif src == 'specialisme':
 		# referral enrichments
 	# elif src == 'omschrijving:'

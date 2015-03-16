@@ -36,6 +36,7 @@ class FrequencyCounter():
 
 	def count(self):
 		'''count each code among all files'''
+		print '...counting codes'
 		headers = self.process_instance.headers
 		id2data = self.process_instance.id2data
 		self.abstraction2counts = dict()
@@ -49,14 +50,16 @@ class FrequencyCounter():
 				count += add
 				if id2data[ID]['data'][-1] != 'negative':
 					count_pos += add
-			self.abstraction2counts[h] = (count, count_pos)
+			self.abstraction2counts[h] = [count, count_pos]
 
 		# for a in self.abstraction2counts:
 		# 	if self.abstraction2counts[a] != (0, 0):
 		# 		print self.abstraction2counts[a]
+		print len(self.abstraction2counts)
 	
 	def significance_test(self):
 		'''test significance of each code among all files'''
+		print '...testing significance'
 		# remove keys whose ratio between the total and CRC-positive counts are over a threshold
 		for key in self.abstraction2counts:
 			# number of  instances
@@ -91,10 +94,12 @@ class FrequencyCounter():
 				SE = 0.00000001
 			Z = (p1-p2) / SE # Z-score
 			P_value = stats.norm.sf(Z)*2 # *2 because two-tailed
-			self.abstraction2counts[key] = P_value
+			self.abstraction2counts[key].append(P_value)
+		print n1,n2
 
 	def export(self, folder, suffix):
 		'''export significant abstractions with the specified suffix to a new file'''
+		print '...exporting significance results'
 		rows = io.read_csv(folder + suffix + '.csv')
 		code2abstractions = {row[0] : row[1:] for row in rows}
 
@@ -102,8 +107,17 @@ class FrequencyCounter():
 		for key, vals in code2abstractions.iteritems(): 
 			frequent_vals = []
 			for abstraction in vals:
-				abstraction = abstraction+'_'+suffix
-				if abstraction in self.abstraction2counts and self.abstraction2counts[abstraction] < self.ALPHA:
+				suffixed_abstraction = abstraction+'_'+suffix
+				if suffixed_abstraction in self.abstraction2counts and self.abstraction2counts[suffixed_abstraction][-1] < self.ALPHA:
 					frequent_vals.append(abstraction)
+				if 'rectal discharge' in abstraction: 
+					print abstraction, suffixed_abstraction, suffixed_abstraction in self.abstraction2counts
+					print self.abstraction2counts.keys()[0]
+					print len(frequent_vals)
+					print self.abstraction2counts[suffixed_abstraction][-1], self.abstraction2counts[suffixed_abstraction][-1] < self.ALPHA
+
 			if len(frequent_vals) > 0:
 				out.writerow([key] + frequent_vals)
+
+		# print self.abstraction2counts.keys()[0:50]
+		print self.abstraction2counts.values()[0:50]
