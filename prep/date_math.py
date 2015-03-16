@@ -1,73 +1,85 @@
 
-from datetime import date,timedelta
+from datetime import date,timedelta,datetime
 import random
 
-random.seed(100000)
+class PatientInterval():
+	'''contains the functions to generate random or non-random patient intervals'''
 
-# generates a random patient interval betwee either the specified dates or, 
-# if more applicable, the prespecified, actual start- and enddates of 
-# the received dataset (used for non-CRC cases)
-def generate_random_patient_interval(patient_begin, patient_end, interval, verbose=False):
-	fixed_begin = date(2006, 01, 01)
-	fixed_end = date(2011, 12, 31)
-	begin_measurement = timedelta(days=interval[1])
-	end_measurement = timedelta(days=interval[0])
+	def __init__(self, seed):
+		'''init object by setting the random seed'''
+		random.seed(seed)
 
-	min_begin = max(patient_begin, fixed_begin) # the latest of the two is our earliest starting point
-	max_begin = min(patient_end, fixed_end) - begin_measurement # the earliest of the two minus the interval is our latest starting point
+	# generates a random patient interval betwee either the specified dates or, 
+	# if more applicable, the prespecified, actual start- and enddates of 
+	# the received dataset (used for non-CRC cases)
+	def randomize(self, patient_begin, patient_end, interval, verbose=False):
+		fixed_begin = date(2006, 01, 01)
+		fixed_end = date(2011, 12, 31)
+		begin_measurement = timedelta(days=interval[1])
+		end_measurement = timedelta(days=interval[0])
 
-	if min_begin > max_begin: # data in the specified interval is not available
-		# print '...............'
-		# print 'skipping a non-CRC patient: it lacks ' + str((min_begin - max_begin).days) + " days"
-		# print patient_begin, patient_end
-		# print fixed_begin, fixed_end
-		return False
+		min_begin = max(patient_begin, fixed_begin) # the latest of the two is our earliest starting point
+		max_begin = min(patient_end, fixed_end) - begin_measurement # the earliest of the two minus the interval is our latest starting point
 
-	choose_from = max_begin - min_begin	
-	random_day = timedelta(days=int(random.random()*(choose_from.days+1)))
+		if min_begin > max_begin: # data in the specified interval is not available
+			# print '...............'
+			# print 'skipping a non-CRC patient: it lacks ' + str((min_begin - max_begin).days) + " days"
+			# print patient_begin, patient_end
+			# print fixed_begin, fixed_end
+			return False
 
-	begin = min_begin + random_day
-	end = begin + (begin_measurement-end_measurement)
+		choose_from = max_begin - min_begin	
+		random_day = timedelta(days=int(random.random()*(choose_from.days+1)))
 
-	if verbose:
-		print '--------------'
-		print patient_begin, patient_end
-		print fixed_begin, fixed_end
-		print begin_measurement
-		print end_measurement
-		print min_begin, max_begin
-		print choose_from
-		print random_day
-		print begin, end
+		begin = min_begin + random_day
+		end = begin + (begin_measurement-end_measurement)
 
-	return begin, end
+		if verbose:
+			print '--------------'
+			print patient_begin, patient_end
+			print fixed_begin, fixed_end
+			print begin_measurement
+			print end_measurement
+			print min_begin, max_begin
+			print choose_from
+			print random_day
+			print begin, end
 
-# generates a patient interval, when the final date of this interval is known (used for CRC cases)
-def generate_patient_interval(enrollment, crc_diagnosis_date, interval, verbose=False):
-	fixed_begin = date(2005, 01, 01)
-	one_day = timedelta(days=1)
+		return begin, end
 
-	begin_measurement = timedelta(days=interval[1])
-	end_measurement = timedelta(days=interval[0])
+	# generates a patient interval, when the final date of this interval is known (used for CRC cases)
+	def calculate(self, enrollment, crc_diagnosis_date, interval, verbose=False):
+		fixed_begin = date(2005, 01, 01)
+		one_day = timedelta(days=1)
 
-	min_begin = max(enrollment, fixed_begin) # the latest of the two is our earliest starting point
-	begin = crc_diagnosis_date - begin_measurement - one_day # subtract with 1 day to exclude the day of diagnosis
+		begin_measurement = timedelta(days=interval[1])
+		end_measurement = timedelta(days=interval[0])
 
-	if min_begin > begin: # the specified interval is not available in the data
-		# print 'skipping a CRC patient: it lacks ' + str((min_begin - begin).days) + " days"
-		return False
-	
-	return begin, (crc_diagnosis_date - end_measurement - one_day)
+		min_begin = max(enrollment, fixed_begin) # the latest of the two is our earliest starting point
+		begin = crc_diagnosis_date - begin_measurement - one_day # subtract with 1 day to exclude the day of diagnosis
+
+		if min_begin > begin: # the specified interval is not available in the data
+			# print 'skipping a CRC patient: it lacks ' + str((min_begin - begin).days) + " days"
+			return False
+		
+		return begin, (crc_diagnosis_date - end_measurement - one_day)
 
 # convert date string in the format yyyy-mm-dd to date object
 def str2date(date_str, ymd=True, yy=False, give_default_begin=False, give_default_end=False):
-	if date_str.strip() == '':
+	if type(date_str) == date:
+		return date_str 
+
+	if type(date_str) == datetime:
+		return date_str.date()
+
+	if date_str == None or (type(date_str) == str and date_str.strip() == ''):
 		if give_default_begin:
 			return str2date("1850-01-01")
 		elif give_default_end:
 			return str2date("2050-12-31")
 		else:
-			print 'str2date encountered a value "{}" which it cannot handle'.format(date_str)
+			print 'str2date encountered a value "{}" of type "{}" which it cannot handle'.format(date_str, type(date_str))
+			return -1
 
 	date_lst = date_str.split('-')
 	if yy:

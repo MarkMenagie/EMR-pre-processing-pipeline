@@ -10,11 +10,16 @@ from StateSequence import StateSequence
 
 # mine all frequent patterns (> min_sup) in the specified file
 def generate(sequence_file, min_sup, verbose=False):
-
-	sequences = in_out.read_csv(sequence_file)
+	if type(sequence_file) == dict:
+		sequences = (v['data'] for k, v in sequence_file.iteritems())
+	else:
+		sequences = in_out.read_csv(sequence_file)
 	sequences_pos = patients_with_class_val(sequences, 'positive')
 
-	sequences = in_out.read_csv(sequence_file)
+	if type(sequence_file) == dict:
+		sequences = (v['data'] for k, v in sequence_file.iteritems())
+	else:
+		sequences = in_out.read_csv(sequence_file)
 	sequences_neg = patients_with_class_val(sequences, 'negative')
 
 	if verbose: 
@@ -42,8 +47,9 @@ def patients_with_class_val(arr, class_val):
 		gender = result[k][1]
 		birthyear = result[k][0]
 		for i in range(len(record)):
-			str_SI = record[i].split(';')
-			record[i] = StateInterval(str_SI[0], str_SI[1], str_SI[2])
+			if type(record[i]) != StateInterval:
+				str_SI = record[i].split(';')
+				record[i] = StateInterval(str_SI[0], str_SI[1], str_SI[2])
 		result[k] = StateSequence(record, k, gender, birthyear)
 	return result
 
