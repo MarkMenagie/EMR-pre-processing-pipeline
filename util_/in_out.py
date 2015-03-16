@@ -63,23 +63,26 @@ def import_data(f, record_id, target_id):
 		return False, False, False
 
 	# save and split records
-	records = np.matrix([row for row in rows])
-	X = records[:,1:-1] # features
+	records = np.matrix([to_int(row)[1:] for row in rows])
+	X = records[:,0:-1] # features
 	headers = headers[1:-1]
 	
 	# convert gender to binary
-	X[X=='V'] = 1
-	X[X=='M'] = 0
+	# X[X=='V'] = 1
+	# X[X=='M'] = 0
 
 	# output
 	y = records[:,-1] # target
 
 	# convert negative and positive CRC cases to integers 0 and 1, respectively
-	y[y=='negative'] = 0
-	y[y=='positive'] = 1
+	# y[y=='negative'] = 0
+	# y[y=='positive'] = 1
 	y=np.squeeze(np.asarray(y.astype(np.int)))
 
 	return X, y, headers
+
+def to_int(l):
+	return [int(el) for el in l]
 
 def save_results(f, titles, results):
 	'''save algorithm results'''

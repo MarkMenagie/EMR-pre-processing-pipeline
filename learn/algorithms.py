@@ -15,41 +15,41 @@ from sklearn.pipeline import Pipeline
 
 from scipy import interp
 
-def SVM(X, y):
+def SVM(X, y, transformers):
     clf = svm.SVC(verbose=True, shrinking=False, probability=True, cache_size=1500, class_weight='auto')
     e_clf = ensemble.BaggingClassifier(clf, n_estimators=1, max_samples = 0.2, n_jobs=-1, verbose=True)
-    results, _ = execute(X, y, lambda: e_clf)
+    results, _ = execute(X, y, transformers, lambda: e_clf)
     return results
 
-def CART(X, y, out_file, field_names):
-    results, model = execute(X, y, lambda: tree.DecisionTreeClassifier(max_depth=5, min_samples_leaf=50))
+def CART(X, y, transformers, out_file, field_names):
+    results, model = execute(X, y, transformers, lambda: tree.DecisionTreeClassifier(max_depth=5, min_samples_leaf=50))
     if model:
         tree.export_graphviz(model, out_file=out_file, feature_names=field_names)
     return results
 
-def RF(X, y):
-    results, model =  execute(X, y, lambda: ensemble.RandomForestClassifier(n_estimators=100,max_depth=5, min_samples_leaf=50, n_jobs=-1))
+def RF(X, y, transformers):
+    results, model =  execute(X, y, transformers, lambda: ensemble.RandomForestClassifier(n_estimators=100,max_depth=5, min_samples_leaf=50, n_jobs=-1))
     if model:
         features = model.feature_importances_
     else:
         features = False
     return results, features
    
-def LR(X, y):
-    results, model =  execute(X, y, lambda: linear_model.LogisticRegression())
+def LR(X, y, transformers):
+    results, model =  execute(X, y, transformers, lambda: linear_model.LogisticRegression())
     if model:
         features = model.coef_
     else:
         features = False
     return results, features
 
-def execute(X, y, classifier):
+def execute(X, y, transformers, classifier):
     X = X.astype(np.float64)
     y = y.astype(np.float64)
     cv = StratifiedKFold(y, n_folds=5) # x-validation
     classifier = classifier()
 
-    clf = Pipeline([('classifier',classifier)])
+    clf = Pipeline(transformers + [('classifier',classifier)])
 
     mean_tpr = 0.0
     mean_fpr = np.linspace(0, 1, 100)

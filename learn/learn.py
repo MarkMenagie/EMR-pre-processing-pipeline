@@ -1,11 +1,13 @@
 import util_.util as util
 import util_.in_out as in_out
 import algorithms as ML
+from sklearn.feature_selection import SelectKBest, chi2
 
 def execute(in_dir, out_dir, record_id, target_id, algorithms):
 	'''executes the learning task on the data in in_dir with the algorithms in algorithms.
 		The results are written to out_dir and subdirectories,
 	    and the record_ and target_ids are used to differentiate attributes and non-attributes'''
+	print '### executing learning algorithms on... ###'
 	
 	# get the files
 	files = util.list_dir_csv(in_dir)
@@ -20,6 +22,7 @@ def execute(in_dir, out_dir, record_id, target_id, algorithms):
 
 	# execute each algorithm
 	for alg in algorithms:
+		print '...{}'.format(alg)
 		execute_with_algorithm(alg, files, out_dir+'/'+alg+'/', record_id, target_id)
 
 	# notify user
@@ -27,6 +30,7 @@ def execute(in_dir, out_dir, record_id, target_id, algorithms):
 
 def execute_with_algorithm(alg, files, out_dir, record_id, target_id):
 	'''execute learning task using the specified algorithm'''
+
 	util.make_dir(out_dir)
 
 	# list which will contain the results
@@ -37,20 +41,29 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id):
 
 		# get base file name
 		fname = in_out.get_file_name(f, extension=False)
+		print ' ...{}'.format(fname)
 		
 		# get data, split in features/target. If invalid stuff happened --> exit
 		X, y, headers = in_out.import_data(f, record_id, target_id) # assumption: first column is patientnumber and is pruned, last is target
-		if X == False: return
+		if type(X) == bool: return
+		print '  ...instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
+
+		# feature selection
+		k = 250
+		if X.shape[1] >= k:
+			transformers = [('kbest', SelectKBest(chi2, 250))]
+		else:
+			transformers = []
 
 		# execute algorithm
 		if alg == 'DT':
-			results = ML.CART(X,y, out_dir+"{}.dot".format(fname), headers)
+			results = ML.CART(X, y, transformers, out_dir+"{}.dot".format(fname), headers)
 		elif alg == 'RF':
-			results, features = ML.RF(X, y)
+			results, features = ML.RF(X, y, transformers)
 		elif alg == 'SVM':
-			results = ML.SVM(X, y)
+			results = ML.SVM(X, y, transformers)
 		elif alg == 'LR':
-			results, features = ML.LR(X, y)
+			results, features = ML.LR(X, y, transformers)
 
 		if not results:
 			return

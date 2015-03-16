@@ -57,13 +57,13 @@ class LearningTab(PipelineTab):
 		'''set the user_input dict to default values'''
 		dct = self.user_input
 
-		dct['in_dir'].set('specify input directory!')
-		dct['out_dir'].set('/Users/Reiny/Documents/UI_CRC/out')
+		dct['in_dir'].set('./out/combined')
+		dct['out_dir'].set('./out')
 		dct['record_id'].set('ID')
 		dct['DT'].set(True)
 		dct['LR'].set(True)
-		dct['RF'].set(True)
-		dct['SVM'].set(True)
+		dct['RF'].set(False)
+		dct['SVM'].set(False)
 
 	def go(self, button):
 		'''initiates the associated algorithms '''
