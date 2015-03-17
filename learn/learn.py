@@ -71,7 +71,7 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_se
 		# export results
 		results_list.append([fname] + results[0:3])
 
-		in_out.save_results(out_dir+fname+'.csv', ["fpr", "tpr", "auc", "cm"], results)
+		in_out.save_results(out_dir+fname+'.csv', ["fpr", "tpr", "auc", "cm"], results, [sum(y),len(y)])
 		if 'features' in locals():
 			features = features.flatten()
 			in_out.save_features(out_dir+"features_" + fname + '.csv', zip(headers[1:-1], features))

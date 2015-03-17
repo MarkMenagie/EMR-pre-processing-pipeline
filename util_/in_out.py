@@ -84,7 +84,7 @@ def import_data(f, record_id, target_id):
 def to_int(l):
 	return [int(el) for el in l]
 
-def save_results(f, titles, results):
+def save_results(f, titles, results, distribution_info):
 	'''save algorithm results'''
 	out = write_csv(f)
 	out.writerow([titles[0]] + results[0].tolist()) # false pos rate for ROC
@@ -93,6 +93,11 @@ def save_results(f, titles, results):
 	out.writerow([titles[3]] + ["", "Pred 0", "Pred 1"]) # confusion matrix line 1
 	out.writerow(["", "Actual 0"] + results[3].tolist()[0]) # confusion matrix line 2
 	out.writerow(["", "Actual 1"] + results[3].tolist()[1]) # confusion matrix line 3
+	out.writerow([''])
+	out.writerow(['# CRC cases', '# Instances'])
+	out.writerow(distribution_info)
+
+
 
 def save_features(f, features):
 	'''writes all features to file'''
