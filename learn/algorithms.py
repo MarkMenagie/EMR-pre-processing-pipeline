@@ -62,6 +62,19 @@ def execute(X, y, transformers, classifier):
             return False, False
 
         # train
+        if type(clf.named_steps['classifier']) == tree.DecisionTreeClassifier:
+            num_pos = sum(y[train]) # number of positive cases
+            w0 = num_pos / len(y[train]) # inversely proportional with number of positive cases
+            w1 = 1 - w0 # complement of w0
+            print num_pos, len(y[train]), w0, w1
+            sample_weight = np.array([w0 if el==0 else w1 for el in y[train]])
+            if len(transformers) >= 1:
+                new_X = transformers[0][1].fit_transform(X[train], y[train])
+            else:
+                new_X = X[train]
+            trained_classifier = clf.named_steps['classifier'].fit(new_X, y[train], sample_weight=sample_weight)
+            trained_classifier = clf.fit(X[train], y[train], sample_weight=sample_weight)
+        else:
         trained_classifier = clf.fit(X[train], y[train])
 
         # test

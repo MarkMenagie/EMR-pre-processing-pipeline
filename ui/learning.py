@@ -41,6 +41,12 @@ class LearningTab(PipelineTab):
 		self.user_input['SVM'] = self.SVM
 		self.buttons['SVM'] = self.SVM_btn
 
+		Label(self, text='   ').grid(row=7, column=0, columnspan=2)
+		
+		self.FS, self.FS_btn = self.make_checkbutton(self, 'apply feature selection', 8, 0)
+		self.user_input['FS'] = self.FS
+		self.buttons['FS'] = self.FS_btn
+
 		# setup algorithm launcher button (incl defaults button)
 		self.setup_launcher()
 
@@ -64,6 +70,7 @@ class LearningTab(PipelineTab):
 		dct['LR'].set(True)
 		dct['RF'].set(False)
 		dct['SVM'].set(False)
+		dct['FS'].set(True)
 
 	def go(self, button):
 		'''initiates the associated algorithms '''
@@ -85,9 +92,9 @@ class LearningTab(PipelineTab):
 
 		record_id = dct['record_id'].get().lower()
 		target_id = 'target'
-		# target_id = dct['target_id'].get()
+		feature_selection = dct['FS'].get()
 
-		learn.execute(in_dir, out_dir, record_id, target_id, algorithms)
+		learn.execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection)
 
 		button.config(text='Done')
 		self.master.update_idletasks()

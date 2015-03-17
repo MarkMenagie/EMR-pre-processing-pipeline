@@ -3,7 +3,7 @@ import util_.in_out as in_out
 import algorithms as ML
 from sklearn.feature_selection import SelectKBest, chi2
 
-def execute(in_dir, out_dir, record_id, target_id, algorithms):
+def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection):
 	'''executes the learning task on the data in in_dir with the algorithms in algorithms.
 		The results are written to out_dir and subdirectories,
 	    and the record_ and target_ids are used to differentiate attributes and non-attributes'''
@@ -23,12 +23,12 @@ def execute(in_dir, out_dir, record_id, target_id, algorithms):
 	# execute each algorithm
 	for alg in algorithms:
 		print '...{}'.format(alg)
-		execute_with_algorithm(alg, files, out_dir+'/'+alg+'/', record_id, target_id)
+		execute_with_algorithm(alg, files, out_dir+'/'+alg+'/', record_id, target_id, feature_selection)
 
 	# notify user
 	print '## Learning Finished ##'
 
-def execute_with_algorithm(alg, files, out_dir, record_id, target_id):
+def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_selection):
 	'''execute learning task using the specified algorithm'''
 
 	util.make_dir(out_dir)
@@ -50,7 +50,7 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id):
 
 		# feature selection
 		k = 250
-		if X.shape[1] >= k:
+		if feature_selection and X.shape[1] >= k:
 			transformers = [('kbest', SelectKBest(chi2, 250))]
 		else:
 			transformers = []
