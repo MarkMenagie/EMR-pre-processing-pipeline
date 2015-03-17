@@ -200,12 +200,12 @@ class ProcessTab(PipelineTab):
 			seq_p.process(needs_processing)
 			seq_p.save_output(sequence_file=True, sub_dir='data/tmprl', name=name)
 
-			generate_pattern_occurrences_per_patient(out_dir, seq_p.id2data, min_sup)
+			generate_pattern_occurrences_per_patient(out_dir, seq_p.id2data, min_sup, dct['mapping_dir'].get())
 			sequence_f = out_dir + '/tmprl/{}.csv'.format(name)
 		else:
 			sequence_f = dct['temporal_specific']['sequence_file'].get()
 		# hier generaten met als extra input headers(?)/id2data
-			generate_pattern_occurrences_per_patient(out_dir, sequence_f, min_sup)
+			generate_pattern_occurrences_per_patient(out_dir, sequence_f, min_sup, dct['mapping_dir'].get())
 
 	def regular(self, dct, now, args):	
 		needs_processing = {k : bool(v.get()) for k, v in dct['a-temporal_specific'].iteritems()}

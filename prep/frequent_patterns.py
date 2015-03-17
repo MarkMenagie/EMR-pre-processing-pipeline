@@ -8,8 +8,15 @@ from Pattern import Pattern, enrich_pattern
 from StateInterval import StateInterval
 from StateSequence import StateSequence
 
+from prep.EnrichProcesses import fill_enrichment_dicts
+
+global ENRICHMENT_DICT
+
 # mine all frequent patterns (> min_sup) in the specified file
-def generate(sequence_file, min_sup, verbose=False):
+def generate(sequence_file, min_sup, mapping_dir, verbose=False):
+	global ENRICHMENT_DICT
+	ENRICHMENT_DICT = fill_enrichment_dicts(mapping_dir)
+
 	if type(sequence_file) == dict:
 		sequences = (v['data'] for k, v in sequence_file.iteritems())
 	else:
@@ -165,6 +172,9 @@ def evaluate_support(patterns, data, min_sup, negated_data, MPTPs):
 	return result
 
 def generate_coherent_superpatterns(P, S, data_dict, all_patterns, strict_matching=True):
+	if not compatible(P.states, S.states[0]):
+		return superpatterns, all_patterns
+
 	superpatterns = []
 	rel_length = P.relations.shape[1] + 1
 	rels = np.empty((rel_length), dtype='S1')
@@ -185,6 +195,39 @@ def generate_coherent_superpatterns(P, S, data_dict, all_patterns, strict_matchi
 				all_patterns.append(new_p)
 
 	return superpatterns, all_patterns
+
+def compatible(p_states, s_state):
+	global ENRICHMENT_DICT
+	print '***'
+	print p_states
+	print s_state
+
+	# get enrichment type (e.g. effects, association)
+	enrichment_type = s_state.split('_')[-1]
+	other_states = [state.split('_')[-1] for state in p_states]
+
+	print enrichment_type
+	print other_states
+
+	# get all possibly compatible lists.
+	if enrichment_type not in ENRICHMENT_DICT:
+		return True
+	possibly_compatible_list_keys = ENRICHMENT_DICT[enrichment_type]
+
+	print len(possibly_compatible_list_keys)
+
+ 	# compare with all lists if it is in there. be sure to compare to the key as well!
+	for key, lst in possibly_compatible_list_keys.iteritems():
+		lst = [key] + lst
+		b = s_state in lst and any(state in lst for state in other_states)
+		print len(lst), b
+		
+		# if the new s_state is in a list, and so is one of the p_states, 
+		# this combined pattern is NOT compatible
+		if b:
+			return False
+
+	return True # any other way, it is compatible
 
 if __name__ == "__main__":
 	args = sys.argv[1:]

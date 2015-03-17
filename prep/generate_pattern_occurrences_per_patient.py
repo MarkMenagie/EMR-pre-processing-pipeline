@@ -9,11 +9,11 @@ from StateSequence import StateSequence
 from Pattern import Pattern
 
 
-def generate_pattern_occurrences_per_patient(out_dir, sequence_file, min_sup):
+def generate_pattern_occurrences_per_patient(out_dir, sequence_file, min_sup, mapping_dir):
 	'''generates pattern, then checks for occurrences per patient and writes to csv'''
 
 	# generate patterns
-	patterns, p_pos, p_neg = generate(sequence_file, min_sup)
+	patterns, p_pos, p_neg = generate(sequence_file, min_sup, mapping_dir)
 
 	# save patterns
 	patterns2csv(patterns, out_dir + '/patterns.csv')
