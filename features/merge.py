@@ -3,8 +3,9 @@ from util_.util import make_dir
 from collections import defaultdict
 
 def execute(in_dir, delim, out_file, age_gender=False, counts_med=False, 
-				counts_med_enrich=False, counts_consult=False, counts_referral=False, 
-				counts_lab=False, tmprl=False, enriched_tmprl=False):
+				counts_med_enrich=False, counts_consult=False, counts_consult_enrich=False,
+				counts_referral=False, counts_lab=False, tmprl=False, 
+				enriched_tmprl=False):
 	'''merge the in files to produce the out file'''
 	merged = defaultdict(list)
 	headers = ['ID']
@@ -20,6 +21,9 @@ def execute(in_dir, delim, out_file, age_gender=False, counts_med=False,
 
 	if counts_consult:
 		headers = merge_file(in_dir+'/C_C.csv', merged, headers, delim)
+	
+	if counts_consult_enrich:
+		headers = merge_file(in_dir+'/C_C_enrich.csv', merged, headers, delim)
 
 	if counts_referral:
 		headers = merge_file(in_dir+'/C_R.csv', merged, headers, delim)

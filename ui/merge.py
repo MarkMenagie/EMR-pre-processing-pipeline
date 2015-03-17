@@ -32,13 +32,12 @@ class MergeTab(PipelineTab):
 		dct['counts_med'] = self.checkbutton_component('counts (medication)', 5, 0)
 		dct['counts_med_enrich'] = self.checkbutton_component('counts (medication enriched)', 6, 0)
 		dct['counts_consult'] = self.checkbutton_component('counts (consults)', 7, 0)
-		dct['counts_referral'] = self.checkbutton_component('counts (referrals)', 8, 0)
-		dct['counts_lab'] = self.checkbutton_component('counts (lab)', 9, 0)
-		# dct['enriched_counts'] = self.checkbutton_component('enriched counts', 6, 0)
-		dct['tmprl'] = self.checkbutton_component('temporal (excl. enriched meds)', 10, 0)
-		dct['enriched_tmprl'] = self.checkbutton_component('temporal (incl. enriched meds)', 11, 0)
-		# dct['enriched_tmprl'] = self.checkbutton_component('enriched patterns', 8, 0)
-		dct['target'] = self.checkbutton_component('target', 12, 0, init_val=True, mode=DISABLED)
+		dct['counts_consult_enrich'] = self.checkbutton_component('counts (consults enriched)', 8, 0)
+		dct['counts_referral'] = self.checkbutton_component('counts (referrals)', 9, 0)
+		dct['counts_lab'] = self.checkbutton_component('counts (lab)', 10, 0)
+		dct['tmprl'] = self.checkbutton_component('temporal (excl. enriched meds)', 11, 0)
+		dct['enriched_tmprl'] = self.checkbutton_component('temporal (incl. enriched meds)', 12, 0)
+		dct['target'] = self.checkbutton_component('target', 13, 0, init_val=True, mode=DISABLED)
 	
 	def setup_radio_buttons(self):
 		'''add feature selection choice part'''
@@ -49,15 +48,15 @@ class MergeTab(PipelineTab):
 
 		# get context dependent frame (regular)
 		no_selection_btn = Radiobutton(self, text='no feature selection', value='none', variable=selection_var)
-		no_selection_btn.grid(row=13, column=0, columnspan=2, sticky=W)
+		no_selection_btn.grid(row=14, column=0, columnspan=2, sticky=W)
 
 		# get context dependent frame (temporal)
 		pre_selection_btn = Radiobutton(self, text='pre-merge selection', value='pre', variable=selection_var)
-		pre_selection_btn.grid(row=14, column=0, columnspan=2, sticky=W)
+		pre_selection_btn.grid(row=15, column=0, columnspan=2, sticky=W)
 
 		# get context dependent frame (temporal)
 		post_selection_btn = Radiobutton(self, text='post-merge selection', value='post', variable=selection_var)
-		post_selection_btn.grid(row=15, column=0, columnspan=2, sticky=W)
+		post_selection_btn.grid(row=16, column=0, columnspan=2, sticky=W)
 
 		# configure events, invoke one by default
 		no_selection_btn.invoke() # default
@@ -68,14 +67,15 @@ class MergeTab(PipelineTab):
 		'''set the user_input dict to default values'''
 		dct = self.user_input
 
-		dct['in_dir'].set('specify input directory!')
+		dct['in_dir'].set('./out/segments')
 		dct['delimiter'].set(',')
-		dct['out_dir'].set('/Users/Reiny/Documents/UI_CRC/out')
+		dct['out_dir'].set('./out/combined')
 		dct['output_id'].set('counts')
 		dct['age+gender'].set(True)
 		dct['counts_med'].set(True)
 		dct['counts_med_enrich'].set(False)
 		dct['counts_consult'].set(True)
+		dct['counts_consult_enrich'].set(False)	
 		dct['counts_referral'].set(True)
 		dct['counts_lab'].set(True)
 		dct['tmprl'].set(False)
@@ -105,27 +105,28 @@ class MergeTab(PipelineTab):
 				dct['counts_med'].get(), 
 				dct['counts_med_enrich'].get(), 
 				dct['counts_consult'].get(), 
+				dct['counts_consult_enrich'].get(), 
 				dct['counts_referral'].get(), 
 				dct['counts_lab'].get(),
 				dct['tmprl'].get(), 
 				dct['enriched_tmprl'].get()
 		]
 
-		feature_selection = 'none'#dct['feature_selection'].get()
+		# feature_selection = 'none'#dct['feature_selection'].get()
 
 		# if pre-merge selection, perform feature selection
-		if feature_selection == 'pre':
-			extract.features(*args)
-			dct['in_dir'].set(dct['in_dir'].get() + '/selected')
+		# if feature_selection == 'pre':
+		# 	extract.features(*args)
+		# 	dct['in_dir'].set(dct['in_dir'].get() + '/selected')
 
 		# merge
 		combine.execute(*args)
 
 		# if post-merge selection, perform feature selection
-		if feature_selection == 'post':
-			dct['in_dir'].set(dct['out_dir'].get())
-			dct['out_dir'].set(dct['out_dir'].get() + '/selected')
-			extract.features(*args)
+		# if feature_selection == 'post':
+		# 	dct['in_dir'].set(dct['out_dir'].get())
+		# 	dct['out_dir'].set(dct['out_dir'].get() + '/selected')
+		# 	extract.features(*args)
 
 		button.config(text='Done')
 		self.master.update_idletasks()

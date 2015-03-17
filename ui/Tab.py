@@ -39,11 +39,16 @@ class PipelineTab(Tab):
 		b.configure(command=lambda: self.browse_dir(dir_var, b))
 		return dir_var
 
-	def checkbutton_component(self, s, r, c, init_val=False, mode=NORMAL):
+	def checkbutton_component(self, s, r, c, init_val=False, mode=NORMAL, onvalue=-1, offvalue=-1):
 		'''adds a checkbutton, and its associated variable'''
-		var = BooleanVar()
-		var.set(init_val)
-		btn = Checkbutton(self,text=s, variable=var)
+		if onvalue == -1:
+			var = BooleanVar()
+			var.set(init_val)
+			btn = Checkbutton(self,text=s, variable=var)
+		else:
+			var = StringVar()
+			var.set(init_val)
+			btn = Checkbutton(self,text=s, variable=var, onvalue=onvalue, offvalue=offvalue)			
 		btn.grid(row=r, column=c, columnspan=2, sticky=W)	
 		btn.config(state=mode)
 		return var		
@@ -66,11 +71,11 @@ class PipelineTab(Tab):
 		'''create buttons to execute the job and for default values'''
 
 		def_button = Button(self,text='Defaults')
-		def_button.grid(row=18, column=0, padx=5, pady=5, sticky=W)
+		def_button.grid(row=30, column=0, padx=5, pady=5, sticky=W)
 		def_button.configure(command=self.defaults)
 
 		go_button = Button(self,text="Run!")
-		go_button.grid(row=18, column=1, padx=5, pady=5, sticky=E)
+		go_button.grid(row=30, column=1, padx=5, pady=5, sticky=E)
 		go_button.configure(command=lambda: self.go(go_button))
 
 	def defaults(self):

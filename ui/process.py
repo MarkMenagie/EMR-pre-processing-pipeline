@@ -22,6 +22,7 @@ class ProcessTab(PipelineTab):
 		self.setup_IO_dirs()
 		self.setup_general()
 		self.setup_radio_buttons()
+		self.setup_HIS_choice()
 		self.setup_launcher()
 		self.pack()
 
@@ -84,6 +85,17 @@ class ProcessTab(PipelineTab):
 		old_f.grid_forget()
 		new_f.grid(row=12, column=0, rowspan=6, columnspan=2, sticky=W)
 
+	def setup_HIS_choice(self):
+		dct = self.user_input
+
+		Label(self, text='HISes to consider (only when using SQL):').grid(row=18, column=0, columnspan=2, sticky=W)
+		dct['PMO'] = self.checkbutton_component('Utrecht Promedico', 19, 0, init_val='PMO', onvalue='PMO', offvalue='')
+		dct['MDM'] = self.checkbutton_component('Utrecht Medicom', 20, 0, init_val='MDM', onvalue='MDM', offvalue='')
+		dct['LUMC'] = self.checkbutton_component('Leiden', 21, 0, init_val='LUMC', onvalue='LUMC', offvalue='')
+		dct['VUMH'] = self.checkbutton_component('Amsterdam MicroHIS', 22, 0, init_val='VUMH', onvalue='VUMH', offvalue='')
+		dct['VUMD'] = self.checkbutton_component('Amsterdam Medicom', 23, 0, init_val='VUMD', onvalue='VUMD', offvalue='')
+		dct['VUSC'] = self.checkbutton_component('Amsterdam Scipio', 24, 0, init_val='VUSC', onvalue='VUSC', offvalue='')
+
 	def defaults(self):
 		'''set the user_input dict to default values'''
 		dct = self.user_input
@@ -99,6 +111,12 @@ class ProcessTab(PipelineTab):
 		dct['temporal_specific']['support'].set(0.1)
 		dct['mapping_dir'].set('../out/semantics_preliminary/')
 
+		dct['PMO'].set('PMO')
+		dct['MDM'].set('MDM')
+		dct['LUMC'].set('LUMC')
+		dct['VUMH'].set('VUMH')
+		dct['VUMD'].set('VUMD')
+		dct['VUSC'].set('VUSC')
 
 	def go(self, button):
 		'''initiates the associated algorithms '''
@@ -132,6 +150,9 @@ class ProcessTab(PipelineTab):
 		now = util.get_current_datetime()
 		util.make_dir(dct['out_dir'].get() + '/' + now + '/')
 
+		HISes = [dct['PMO'].get(), dct['MDM'].get(), dct['LUMC'].get(), 
+				 dct['VUMH'].get(), dct['VUMD'].get(), dct['VUSC'].get()]
+
 		args = [dct['in_dir'].get(), 
 				dct['delimiter'].get(),
 				dct['out_dir'].get() + '/' + now, 
@@ -139,7 +160,8 @@ class ProcessTab(PipelineTab):
 				int(dct['min_age'].get()),
 				int(dct['max_age'].get()),
 				[int(dct['end_interval'].get()), int(dct['begin_interval'].get())],
-				True if dct['in_dir'].get().lower() == 'sql' else False]
+				True if dct['in_dir'].get().lower() == 'sql' else False,
+				HISes]
 
 		if dct['process_temporal'].get(): # process temporally
 			self.temporal(dct, now, args)

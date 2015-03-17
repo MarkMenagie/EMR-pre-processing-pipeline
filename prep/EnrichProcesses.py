@@ -10,8 +10,8 @@ class StandardEnrichProcess(StandardProcess):
 		data is used, such as using side effects instead of
 		medication.'''
 
-	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql, mapping_files_dir):
-		StandardProcess.__init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql)
+	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql, HIS_list, mapping_files_dir):
+		StandardProcess.__init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql, HIS_list)
 		
 		# dict of enrichment dicts which describe the transformation from a code to some abstraction
 		self.code2x_dict = fill_enrichment_dicts(mapping_files_dir)
@@ -29,8 +29,8 @@ class SequenceEnrichProcess(SequenceProcess):
 		data is used, such as using side effects instead of
 		medication.'''
 
-	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql, mapping_files_dir):
-		SequenceProcess.__init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql)
+	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql, HIS_list, mapping_files_dir):
+		SequenceProcess.__init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql, HIS_list)
 		
 		# list of enrichments dicts which describe the transformation from a code to some abstraction
 		self.code2x_dict = fill_enrichment_dicts(mapping_files_dir)
@@ -56,16 +56,16 @@ def generate_enriched_attributes(code, limit, suffix, src, code2, ParentClass, p
 		ingredients = [ingredient + '_ingredient' for ingredient in ingredients]
 
 		return effects + indications + ingredients# + ParentClass.generate_attributes(process_instance, code, limit, suffix, src) # 'super' class call
-	# elif src == 'icpc':
-	# 	# print code, limit, suffix, src
+	elif src == 'icpc':
+		# print code, limit, suffix, src
 
-	#  	manifestationof = util.get_dict_val(code2['manifestationof'], code, default=[])
-	# 	manifestationof = [m + '_manifestationof' for m in manifestationof]
+	 	manifestationof = util.get_dict_val(code2['manifestationof'], code, default=[])
+		manifestationof = [m + '_manifestationof' for m in manifestationof]
 
-	#  	association = util.get_dict_val(code2['association'], code, default=[])
-	# 	association = [a + '_association' for a in association]
+	 	association = util.get_dict_val(code2['association'], code, default=[])
+		association = [a + '_association' for a in association]
 
-	#  	return manifestationof + association + ParentClass.generate_attributes(process_instance, code, limit, suffix, src) # 'super' class call
+	 	return manifestationof + association# + ParentClass.generate_attributes(process_instance, code, limit, suffix, src) # 'super' class call
 	# elif src == 'specialisme':
 		# referral enrichments
 	# elif src == 'omschrijving:'

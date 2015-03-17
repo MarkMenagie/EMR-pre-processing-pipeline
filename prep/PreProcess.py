@@ -8,7 +8,7 @@ import util_.sql as sql
 class PreProcess():
 	'''abstract class describing basic functionality of the preprocessing phase'''
 
-	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql):
+	def __init__(self, in_dir, delim, out_dir, ID_column, min_age, max_age, interval, from_sql, HIS_list):
 		self.in_dir = in_dir
 		self.delim = delim # delimiter of input file (default ',')
 		self.out_dir = out_dir
@@ -18,6 +18,7 @@ class PreProcess():
 		self.interval = interval # interval of data we deem relevant
 		self.id2data = dict() # dict describing all data instances
 		self.from_sql = from_sql
+		self.HIS_subquery = self.to_condition(HIS_list)
 
 	def insert_data(self, f, code_column, date_column, regex_string, limit, suffix='', incorporate_SOEP=False):
 		'''abstract method to be implemented by subclass'''
@@ -54,7 +55,7 @@ class PreProcess():
 
 			# build query, execute
 			query = 'SELECT {} FROM medicaties'.format(fields_str)
-			cursor.execute(query)
+			self.execute(cursor, query)
 
 			med_headers, self.num_med, self.num_med_pos = self.insert_data(
 									cursor, fields, 
@@ -72,7 +73,7 @@ class PreProcess():
 
 			# build query, execute
 			query = 'SELECT {} FROM journalen'.format(fields_str)
-			cursor.execute(query)
+			self.execute(cursor, query)
 
 			consult_headers, self.num_cons, self.num_cons_pos = self.insert_data(
 									cursor, fields, 
@@ -90,7 +91,7 @@ class PreProcess():
 
 			# build query, execute
 			query = 'SELECT {} FROM doorverwijzingen'.format(fields_str)
-			cursor.execute(query)
+			self.execute(cursor, query)
 
 			ref_headers,_,_ = self.insert_data(
 									cursor, fields, 
@@ -107,7 +108,7 @@ class PreProcess():
 
 			# build query, execute
 			query = 'SELECT {} FROM comorbiditeit'.format(fields_str)
-			cursor.execute(query)
+			self.execute(cursor, query)
 
 			comor_headers,_,_ = self.insert_data(
 									cursor, fields, 
@@ -125,7 +126,7 @@ class PreProcess():
 
 			# build query, execute
 			query = 'SELECT {} FROM labuitslagen'.format(fields_str)
-			cursor.execute(query)
+			self.execute(cursor, query)
 
 			lab_headers, self.num_lab, self.num_lab_pos = self.insert_data(
 									cursor, fields, 
@@ -150,8 +151,8 @@ class PreProcess():
 		fields_str = ','.join(fields)
 
 		# build query, execute
-		query = 'SELECT {} FROM PATIENTEN'.format(fields_str)
-		cursor.execute(query)
+		query = 'SELECT {} FROM patienten'.format(fields_str)
+		self.execute(cursor, query)
 
 		# start filling self.id2data
 		return self.get_IDs(cursor, fields)
@@ -167,10 +168,10 @@ class PreProcess():
 		# build query, execute
 		# query = "SELECT {} FROM journalen WHERE soepcode = 'E' ".format(fields_str)
 		query = '''SELECT patientnummer, min(datum) 
-					  FROM journalen
-					  WHERE substr(icpc,1,3) = 'D75'
+					  FROM journalen'''
+		query_footer = '''AND substr(icpc,1,3) = 'D75'
 					  GROUP BY patientnummer'''
-		cursor.execute(query)
+		self.execute(cursor, query, query_footer)
 
 		# self.get_CRC_occurrences(cursor, fields)
 		
@@ -409,6 +410,15 @@ class PreProcess():
 		except AttributeError:
 			max_val = ''
 		return val, min_val, max_val
+
+	def execute(self, cursor, query, query_footer=''):
+		'''add HIS subsetting to query if it is available'''
+		query = query + self.HIS_subquery + query_footer
+		cursor.execute(query)
+
+	def to_condition(self, lst):
+		'''generate condition-segment of a query using the list lst'''
+		return " WHERE praktijkcode IN ('" + "','".join(lst) + "')"
 
 	def	save_output(self, benchmark=False, sequence_file=False, sub_dir='', name='unnamed', target=False):
 		'''saves processed data to the specified output directory'''
