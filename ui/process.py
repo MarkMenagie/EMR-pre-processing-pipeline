@@ -6,6 +6,7 @@ import util_.in_out as io
 
 from prep.StandardProcess import StandardProcess
 from prep.SequenceProcess import SequenceProcess
+from prep.MarshallProcess import MarshallProcess
 from prep.EnrichProcesses import StandardEnrichProcess, SequenceEnrichProcess
 from prep.generate_pattern_occurrences_per_patient import generate_pattern_occurrences_per_patient
 
@@ -162,7 +163,7 @@ class ProcessTab(PipelineTab):
 				[int(dct['end_interval'].get()), int(dct['begin_interval'].get())],
 				True if dct['in_dir'].get().lower() == 'sql' else False,
 				HISes]
-
+		
 		if dct['process_temporal'].get(): # process temporally
 			self.temporal(dct, now, args)
 		else: # process atemporally
@@ -209,7 +210,13 @@ class ProcessTab(PipelineTab):
 	def regular(self, dct, now, args):	
 		needs_processing = {k : bool(v.get()) for k, v in dct['a-temporal_specific'].iteritems()}
 
-		if dct['enrich'].get():
+		knowledge_driven = dct['a-temporal_specific']['knowledge-driven'].get()
+
+		if knowledge_driven:
+			std_p = MarshallProcess(*args)
+			std_p.process(needs_processing)
+			std_p.save_output(name='counts_knowledge_driven', sub_dir='data')			
+		elif dct['enrich'].get():
 			std_p = StandardEnrichProcess(*args, mapping_files_dir=dct['mapping_dir'].get())
 			std_p.process(needs_processing)
 			std_p.save_output(name='counts_enriched', sub_dir='data')
@@ -220,4 +227,3 @@ class ProcessTab(PipelineTab):
 
 		std_p.save_output(benchmark=True, sub_dir='data', name='age+gender')
 		std_p.save_output(target=True, sub_dir='data', name='target')
-

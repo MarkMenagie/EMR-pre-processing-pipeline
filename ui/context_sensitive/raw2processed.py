@@ -37,14 +37,17 @@ class Raw2Processed:
 				if not enabled:
 					self.buttons[key].config(state=NORMAL)
 				if enabled:
-					self.values[key].set(False)
+					if key in ['medication', 'consults', 'lab_results']:
+						self.values[key].set(True)
+					else:
+						self.values[key].set(False)
 					self.buttons[key].config(state=DISABLED)
 
 	def toggle_other_buttons(self, button_key):
 		enabled = self.values[button_key].get()
 
 		for key in self.buttons:
-			if key != button_key and key not in ['lab_results', 'knowledge-driven']:
+			if key != button_key and key not in ['knowledge-driven']:
 				if not enabled:
 					self.buttons[key].config(state=NORMAL)
 				if enabled:

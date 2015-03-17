@@ -7,10 +7,10 @@ class Raw2Attributes(Raw2Processed):
 	def make_frame(self, parent):
 		f = Frame(parent)
 		
-		self.knowledge, self.knowledge_btn = self.make_checkbutton(f, 'knowledge driven only (N/A)', 0, 0)
+		self.knowledge, self.knowledge_btn = self.make_checkbutton(f, 'knowledge driven only', 0, 0)
 		self.values['knowledge-driven'] = self.knowledge
 		self.buttons['knowledge-driven'] = self.knowledge_btn
-		self.knowledge_btn.configure(command=self.knowledge_only, state=DISABLED)
+		self.knowledge_btn.configure(command=self.knowledge_only)
 
 		self.medication, self.medication_btn = self.make_checkbutton(f, 'include medication', 1, 0)
 		self.values['medication'] = self.medication
