@@ -1,5 +1,4 @@
 from datetime import timedelta
-from prep.StateInterval import StateInterval
 
 def get_trends(measurement_id, time_points):
 	
@@ -37,13 +36,13 @@ def get_trends(measurement_id, time_points):
 		# if the state has the same tonicity as the previous
 		# simply change the endtime of the previous segment
 		# else add a new segment
-		if len(abstractions) > 0 and abstractions[-1].state == s:
-			abstractions[-1].end = e
+		if len(abstractions) > 0 and abstractions[-1][0] == s:
+			abstractions[-1][2] = e
 		else:
-			abstractions.append(StateInterval(s,b,e))
+			abstractions.append([s,b,e])
 
 	# change the final abstraction to include the last day
 	final_abstr = abstractions[-1]
-	final_abstr.end = final_abstr.end + one_day
+	final_abstr[2] = final_abstr[2] + one_day
 
 	return abstractions

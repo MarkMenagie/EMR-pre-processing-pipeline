@@ -94,7 +94,7 @@ class SequenceProcess(PreProcess):
 					for attr in attributes:
 
 						# insert a StateInterval object with the specified parameters
-						self.insert_state_interval(key, attr, b_date, e_date)
+						self.insert_state_interval(key, attr, b_date, e_date, original_code, code_column)
 
 		if suffix == 'lab_results': # do funky stuff with trends and abstractions
 			# convert to trends PER lab result
@@ -109,12 +109,15 @@ class SequenceProcess(PreProcess):
 					# if only 1 measurement was done, we cannot do time series analysis
 					if len(points) > 1 and ID in dct: 
 						abstractions = abstracts.get_trends(k, points)
-						self.id2data[ID]['data'] = self.id2data[ID]['data'] + abstractions
+						for abstraction in abstractions:
+							self.insert_state_interval(ID, *abstraction, original_code=original_code, src=code_column)
+						# self.id2data[ID]['data'] = self.id2data[ID]['data'] + abstractions
 		
 		# to satisfy return value requirement for the method 'process' in the superclass
 		return [], -1, -1
 			
-	def insert_state_interval(self, key, state, begin, end):
+	def insert_state_interval(self, key, state, begin, end, original_code, src):
+		'''converts state-begin-end-triples to state intervals, add to data record data'''
 		sequence = self.id2data[key]['data']
 		SI = StateInterval(state, begin, end)
 		sequence.append(SI)

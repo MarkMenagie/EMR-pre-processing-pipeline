@@ -122,7 +122,7 @@ class StandardProcess(PreProcess):
 					if len(points) > 1 and ID in dct: 
 						abstractions = abstracts.get_trends(k, points)
 						for attr in abstractions:
-							attr = attr.state
+							attr = attr[0] # get the state
 							util.init_key(attribute2ids, attr, dict())
 							util.init_key(attribute2ids[attr], ID, 0)
 							attribute2ids[attr][ID] += 1
