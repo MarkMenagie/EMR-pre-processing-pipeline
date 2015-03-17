@@ -41,6 +41,32 @@ class SequenceEnrichProcess(SequenceProcess):
 			side effects, indications, and active ingredients.'''
 		return generate_enriched_attributes(code, limit, suffix, src, self.code2x_dict, self.__class__.__bases__[0], self)
 
+	# def insert_state_interval(self, key, state, begin, end, original_code, src):
+	# 	'''convert state-begin-end-triples to state intervals, 
+	# 		making sure an incompatibility list
+	# 		is added to the StateInterval to avoid explosion of search space 
+	# 		when performing temporal mining'''
+	# 	code2 = self.code2x_dict
+	# 	code = original_code
+		
+	# 	incompatibility_list = [original_code]
+	# 	if src == 'atc_code':
+	# 		if code in code2['effects']:
+	# 			incompatibility_list = incompatibility_list + code2['effects'][code]
+	# 		if code in code2['indications']:
+	# 			incompatibility_list = incompatibility_list + code2['indications'][code]
+	# 		if code in code2['ingredients']:
+	# 			incompatibility_list = incompatibility_list + code2['ingredients'][code]
+	# 	elif src == 'icpc':
+	# 		if code in code2['manifestationof']:
+	# 			incompatibility_list = incompatibility_list + code2['manifestationof'][code]
+	# 		if code in code2['associations']:
+	# 			incompatibility_list = incompatibility_list + code2['associations'][code]
+
+	# 	sequence = self.id2data[key]['data']
+	# 	SI = StateInterval(state, begin, end, incompatibility_list)
+	# 	sequence.append(SI)
+
 def generate_enriched_attributes(code, limit, suffix, src, code2, ParentClass, process_instance):
 	'''Generate enriched attributes.'''
 	# which source file are we currently investigating?
@@ -55,7 +81,7 @@ def generate_enriched_attributes(code, limit, suffix, src, code2, ParentClass, p
 		ingredients = util.get_dict_val(code2['ingredients'], code, default=[])
 		ingredients = [ingredient + '_ingredient' for ingredient in ingredients]
 
-		return effects + indications + ingredients# + ParentClass.generate_attributes(process_instance, code, limit, suffix, src) # 'super' class call
+		return effects + indications + ingredients + ParentClass.generate_attributes(process_instance, code, limit, suffix, src) # 'super' class call
 	elif src == 'icpc':
 		# print code, limit, suffix, src
 
@@ -65,7 +91,7 @@ def generate_enriched_attributes(code, limit, suffix, src, code2, ParentClass, p
 	 	association = util.get_dict_val(code2['association'], code, default=[])
 		association = [a + '_association' for a in association]
 
-	 	return manifestationof + association# + ParentClass.generate_attributes(process_instance, code, limit, suffix, src) # 'super' class call
+	 	return manifestationof + association + ParentClass.generate_attributes(process_instance, code, limit, suffix, src) # 'super' class call
 	# elif src == 'specialisme':
 		# referral enrichments
 	# elif src == 'omschrijving:'
