@@ -40,50 +40,62 @@ class FrequencyCounter():
 		headers = self.process_instance.headers
 		id2data = self.process_instance.id2data
 		self.abstraction2counts = dict()
-		count = 0
-		count_pos = 0 
+
+		# print self.n1,self.n2
 		for i, h in enumerate(headers):
 			if h.lower() in ['id', 'target', 'age', 'gender']:
 				continue
+			count_neg = 0
+			count_pos = 0 
 			for ID in id2data:
-				add = int(id2data[ID]['data'][i])
-				count += add
-				if id2data[ID]['data'][-1] != 'negative':
-					count_pos += add
-			self.abstraction2counts[h] = [count, count_pos]
+				if int(id2data[ID]['data'][i]) > 0:
+					if id2data[ID]['data'][-1] != 'negative':
+						count_pos += 1
+					else:
+						count_neg += 1
+			self.abstraction2counts[h] = [count_neg, count_pos]
+			# print h, count_neg, count_pos, self.process_instance.num_med, self.process_instance.num_med_pos#, self.process_instance.num_cons, self.process_instance.num_cons_pos
 
 		# for a in self.abstraction2counts:
 		# 	if self.abstraction2counts[a] != (0, 0):
 		# 		print self.abstraction2counts[a]
-		print len(self.abstraction2counts)
+		# print len(self.abstraction2counts)
 	
 	def significance_test(self):
 		'''test significance of each code among all files'''
 		print '...testing significance'
+		id2data = self.process_instance.id2data
+		n2 = float(sum((0 if lst['data'][-1] == 'negative' else 1 for lst in id2data.values()))) # num patients with positive CRC
+		n1 = float(len(id2data) - n2) # num patients with negative CRC
+
 		# remove keys whose ratio between the total and CRC-positive counts are over a threshold
 		for key in self.abstraction2counts:
-			# number of  instances
-			if 'effect' in key or 'indication' in key or 'ingredient' in key:
-				n1 = float(self.process_instance.num_med)
-				n2 = float(self.process_instance.num_med_pos)
-			elif 'manifestationof' in key or 'association' in key:
-				n1 = float(self.process_instance.num_cons)
-				n2 = float(self.process_instance.num_cons_pos)				
-			else:
-				print 'error. unknown abstraction {} in FrequencyCounter.py, line 50ish'.format(key)
-				exit()
+
+			_type = key.split('_')[-1]
+			if not (_type in ['effect', 'indication', 'ingredient', 'manifestationof', 'association']):
+				continue
+			# if 'effect' in key or 'indication' in key or 'ingredient' in key:
+			# 	n2 = float(self.process_instance.num_med_pos)
+			# 	n1 = float(self.process_instance.num_med) - n2
+			# elif 'manifestationof' in key or 'association' in key:
+			# 	n2 = float(self.process_instance.num_cons_pos)				
+			# 	n1 = float(self.process_instance.num_cons) - n2
+			# else:
+			# 	print 'error. unknown abstraction {} in FrequencyCounter.py, line 76ish'.format(key)
+			# 	continue
+			# 	# exit()
 
 			# number of counts for total and positive categories
-			total_count, pos_count = self.abstraction2counts[key]
+			neg_count, pos_count = self.abstraction2counts[key]
 
 			# this snippet essentially corrects for double occurrences of abstractions in a single code (e.g. 2x 'Rash' in atc code A01B234)
-			if total_count > n1: 
-				total_count = n1
-			if pos_count > n2: 
-				pos_count = n2
+			# if neg_count > n1: 
+			# 	neg_count = n1
+			# if pos_count > n2: 
+			# 	pos_count = n2
 
 			# proportions
-			p1 = total_count / n1
+			p1 = neg_count / n1
 			p2 = pos_count / n2
 
 			# perform statistical test (see http://stattrek.com/hypothesis-test/difference-in-proportions.aspx)
@@ -95,7 +107,16 @@ class FrequencyCounter():
 			Z = (p1-p2) / SE # Z-score
 			P_value = stats.norm.sf(Z)*2 # *2 because two-tailed
 			self.abstraction2counts[key].append(P_value)
-		print n1,n2
+
+			# print '###'
+			# print 'counts', neg_count, pos_count
+			# print 'total', n1, n2
+			# print 'proportions', p1, p2
+			# print 'pss', p
+			# print 'error', SE
+			# print 'Z', Z
+			# print 'P value', P_value
+			# print
 
 	def export(self, folder, suffix):
 		'''export significant abstractions with the specified suffix to a new file'''
@@ -110,14 +131,14 @@ class FrequencyCounter():
 				suffixed_abstraction = abstraction+'_'+suffix
 				if suffixed_abstraction in self.abstraction2counts and self.abstraction2counts[suffixed_abstraction][-1] < self.ALPHA:
 					frequent_vals.append(abstraction)
-				if 'rectal discharge' in abstraction: 
-					print abstraction, suffixed_abstraction, suffixed_abstraction in self.abstraction2counts
-					print self.abstraction2counts.keys()[0]
-					print len(frequent_vals)
-					print self.abstraction2counts[suffixed_abstraction][-1], self.abstraction2counts[suffixed_abstraction][-1] < self.ALPHA
+				# if 'rectal discharge' in abstraction: 
+				# 	print abstraction, suffixed_abstraction, suffixed_abstraction in self.abstraction2counts
+				# 	print self.abstraction2counts.keys()[0]
+				# 	print len(frequent_vals)
+				# 	print self.abstraction2counts[suffixed_abstraction][-1], self.abstraction2counts[suffixed_abstraction][-1] < self.ALPHA
 
 			if len(frequent_vals) > 0:
 				out.writerow([key] + frequent_vals)
 
 		# print self.abstraction2counts.keys()[0:50]
-		print self.abstraction2counts.values()[0:50]
+		# print self.abstraction2counts.values()[0:50]
