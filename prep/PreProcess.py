@@ -121,7 +121,7 @@ class PreProcess():
 		# gather data from lab results csv
 		if 'lab_results' in needs_processing and needs_processing['lab_results']:
 			print '...processing lab results'	
-			fields = ['patientnummer', 'code', 'datum', 'waarde', 'referentie_minimum', 'referentie_maximum'] # make headers
+			fields = ['patientnummer', 'codenorm', 'datum', 'waarde', 'referentie_minimum', 'referentie_maximum'] # make headers
 			fields_str = ','.join(fields) # fields to comma-separated string
 
 			# build query, execute
@@ -130,7 +130,7 @@ class PreProcess():
 
 			lab_headers, self.num_lab, self.num_lab_pos = self.insert_data(
 									cursor, fields, 
-									'code', 
+									'codenorm', 
 									['datum', 'datum'], 
 									'.+', None,
 									suffix='lab_results')

@@ -129,7 +129,7 @@ class MarshallProcess(StandardProcess):
 					if len(points) > 1 and ID in dct: 
 						abstractions = abstracts.get_trends(k, points)
 						for attr in abstractions:
-							attr = attr.state
+							attr = attr[0] # get the state
 							util.init_key(attribute2ids, attr, dict())
 							util.init_key(attribute2ids[attr], ID, 0)
 							attribute2ids[attr][ID] += 1
@@ -164,10 +164,10 @@ class MarshallProcess(StandardProcess):
 			'K93','K94',
 			'T07','T08','T82','T89','T90','T92',
 			'G04']
-		is_lab_predictor = (src == 'code') and code in [
-			'HBAC','HB','HBA1','HBA2',
+		is_lab_predictor = (src == 'codenorm') and code in [
+			'HB','HBA1','HBA2',
 			'MCH','MCHC','MCHC'
-			'OCCB', 'OCBI']
+			'OCCULTBLOE', 'OCBIDF']
 		return is_med_predictor or is_consult_predictor or is_lab_predictor
 
 if __name__ == '__main__':

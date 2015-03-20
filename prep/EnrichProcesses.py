@@ -96,7 +96,7 @@ def generate_enriched_attributes(code, limit, suffix, src, code2, ParentClass, p
 		# referral enrichments
 	# elif src == 'omschrijving:'
 		# comorbidity enrichments
-	# elif src == 'code':
+	# elif src == 'codenorm':
 		# lab result enrichments
 	else:
 		# default enrichment (= none, just return original value + suffix)
