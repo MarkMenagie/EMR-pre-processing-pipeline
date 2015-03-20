@@ -15,48 +15,51 @@ from sklearn.pipeline import Pipeline
 
 from scipy import interp
 
-def SVM(X, y, transformers):
+def SVM(X, y, best_features):
     clf = svm.SVC(verbose=True, shrinking=False, probability=True, cache_size=1500, class_weight='auto')
     e_clf = ensemble.BaggingClassifier(clf, n_estimators=1, max_samples = 0.2, n_jobs=-1, verbose=True)
-    results, _ = execute(X, y, transformers, lambda: e_clf)
+    results, _ = execute(X, y, best_features, lambda: e_clf)
     return results
 
-def CART(X, y, transformers, out_file, field_names):
-    results, model = execute(X, y, transformers, lambda: tree.DecisionTreeClassifier(max_depth=5, min_samples_leaf=50))
+def CART(X, y, best_features, out_file, field_names):
+    results, model = execute(X, y, best_features, lambda: tree.DecisionTreeClassifier(max_depth=5, min_samples_leaf=50))
     if model:
         tree.export_graphviz(model, out_file=out_file, feature_names=field_names)
     return results
 
-def RF(X, y, transformers):
-    results, model =  execute(X, y, transformers, lambda: ensemble.RandomForestClassifier(n_estimators=100,max_depth=5, min_samples_leaf=50, n_jobs=-1))
+def RF(X, y, best_features):
+    results, model =  execute(X, y, best_features, lambda: ensemble.RandomForestClassifier(n_estimators=100,max_depth=5, min_samples_leaf=50, n_jobs=-1))
     if model:
         features = model.feature_importances_
     else:
         features = False
     return results, features
    
-def LR(X, y, transformers):
-    results, model =  execute(X, y, transformers, lambda: linear_model.LogisticRegression())
+def LR(X, y, best_features):
+    results, model =  execute(X, y, best_features, lambda: linear_model.LogisticRegression())
     if model:
         features = model.coef_
     else:
         features = False
     return results, features
 
-def execute(X, y, transformers, classifier):
-    X = X.astype(np.float64)
-    y = y.astype(np.float64)
+def execute(X, y, best_features, classifier):
     cv = StratifiedKFold(y, n_folds=5) # x-validation
     classifier = classifier()
+    
+    # print np.var(X[:,0]),np.var(X[:,1]),np.var(X[:,2]),np.var(X[:,3]),np.var(X[:,4]),np.var(X[:,5]),
 
-    clf = Pipeline(transformers + [('classifier',classifier)])
+    clf = Pipeline([('classifier',classifier)])
 
     mean_tpr = 0.0
     mean_fpr = np.linspace(0, 1, 100)
     all_tpr = []
     cm=np.zeros((2,2))
+  
     # cross fold validation
+    print '  ...performing x-validation'
     for i, (train, test) in enumerate(cv):
+        print '   ...',i+1
         if sum(y[train]) < 5:
             print '...cannot train; too few positive examples'
             return False, False
@@ -67,17 +70,16 @@ def execute(X, y, transformers, classifier):
             w0 = num_pos / len(y[train]) # inversely proportional with number of positive cases
             w1 = 1 - w0 # complement of w0
             sample_weight = np.array([w0 if el==0 else w1 for el in y[train]])
-            if len(transformers) >= 1:
-                new_X = transformers[0][1].fit_transform(X[train], y[train])
-            else:
-                new_X = X[train]
-            trained_classifier = clf.named_steps['classifier'].fit(new_X, y[train], sample_weight=sample_weight)
+            trained_classifier = clf.named_steps['classifier'].fit(X[train], y[train], sample_weight=sample_weight)
             #trained_classifier = clf.fit(X[train], y[train], sample_weight=sample_weight)
         else:
             trained_classifier = clf.fit(X[train], y[train])
 
         # test
+        # if best_features == 'all': # if we did not do feature selection
         y_pred = trained_classifier.predict_proba(X[test])
+        # else: # if we performed feature selection, we have a list of indices indicating the best features  
+            # y_pred = trained_classifier.predict_proba(X[test][:,best_features])
 
         # make cutoff for confusion matrix
         y_pred_binary = (y_pred[:,1] > 0.01).astype(int)
@@ -94,6 +96,7 @@ def execute(X, y, transformers, classifier):
     mean_cm = cm/len(cv)
 
     # redo with all data to return the features of the final model
+    print '  ...fitting model (full data sweep)'.format(X.shape)
     complete_classifier = clf.fit(X,y)
 
     return [mean_fpr, mean_tpr, mean_auc, mean_cm], complete_classifier.named_steps['classifier']

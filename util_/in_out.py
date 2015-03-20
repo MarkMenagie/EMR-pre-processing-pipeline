@@ -63,22 +63,32 @@ def import_data(f, record_id, target_id):
 		return False, False, False
 
 	# save and split records
-	records = np.matrix([to_int(row)[1:] for row in rows])
+	print '  ...(loading)'
+	records = [row[1:] for row in rows]
+	print '  ...(converting to matrix)'
+	# print len(records), len(records[0])
+	records = np.matrix(records)
+	# print records.shape
 	X = records[:,0:-1] # features
 	headers = headers[1:-1]
-	
+	# print X.shape
 	# convert gender to binary
 	# X[X=='V'] = 1
 	# X[X=='M'] = 0
 
 	# output
 	y = records[:,-1] # target
-
+	# print y.shape
 	# convert negative and positive CRC cases to integers 0 and 1, respectively
 	# y[y=='negative'] = 0
 	# y[y=='positive'] = 1
 	y=np.squeeze(np.asarray(y.astype(np.int)))
+	# print y.shape
 
+	print '  ...(converting data type)'
+	X = X.astype(np.float64, copy=False)
+	y = y.astype(np.float64, copy=False)
+	# print X[0:5,0:5]
 	return X, y, headers
 
 def to_int(l):
@@ -134,8 +144,8 @@ def save_ROC(f, curves, clear=True, random=True, title='ROC Curve'):
 			# label=result[0] + ' (AUC = %0.2f)' % result[3], lw=1)
 			label=result[0].split('.csv')[0] + ' (%0.2f)' % result[3], lw=1)
 
-	plt.plot(mean_x, (sum_y/float(len(curves))),
-		label='Mean (%0.2f)' % (sum_auc/float(len(curves))), lw=3)
+	# plt.plot(mean_x, (sum_y/float(len(curves))),
+	# 	label='Mean (%0.2f)' % (sum_auc/float(len(curves))), lw=3)
 
 	# add legend
 	plt.legend(loc="lower right")

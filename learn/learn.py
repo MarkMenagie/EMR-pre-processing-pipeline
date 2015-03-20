@@ -1,7 +1,8 @@
 import util_.util as util
 import util_.in_out as in_out
 import algorithms as ML
-from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.feature_selection import SelectKBest, f_classif, chi2, VarianceThreshold
+import numpy as np
 
 def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection):
 	'''executes the learning task on the data in in_dir with the algorithms in algorithms.
@@ -49,21 +50,74 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_se
 		print '  ...instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
 
 		# feature selection
-		k = 250
+		k = 500
 		if feature_selection and X.shape[1] >= k:
-			transformers = [('kbest', SelectKBest(chi2, 250))]
+			print '  ...performing feature selection'
+
+
+			# subset for feature selection
+			# print '   ...subsetting pos'
+			# print y.shape, y[0:5], type(y[0]), type(y[1])
+			# pos_target_indices = y[y==1]
+			# # print pos_target_indices, pos_target_indices.shape
+			# sub_pos_X = X[pos_target_indices,:]
+			# sub_pos_y = np.squeeze(y[pos_target_indices])
+
+			# # print '    ..neg'
+			# neg_target_indices = y[y==0]
+			# # print y[pos_target_indices].shape
+			# # print y[neg_target_indices].shape
+
+			# # print '     ..choices'
+			# neg_choices = np.random.choice(y[neg_target_indices], size=sum(pos_target_indices)*50, replace=False)
+			# # print neg_choices
+			# sub_neg_X = X[neg_choices,:]
+			# sub_neg_y = np.squeeze(y[neg_choices])
+
+			# # print '    ... adding, ', sub_pos_X.shape[1]
+			# cols = sub_pos_X.shape[1]
+			# rows_pos = sub_pos_X.shape[0]
+			# rows = sub_pos_X.shape[0] + sub_neg_X.shape[0]
+			# sub_X = np.empty( (rows, cols) )
+			# sub_X[0:rows_pos, :] = sub_pos_X
+			# sub_X[rows_pos:, :] = sub_neg_X
+			# sub_y = np.append(sub_pos_y, sub_neg_y)
+			# # print sub_pos_X.shape
+			# # print sub_neg_X.shape
+			# # print sub_X.shape
+			# # print sub_y.shape
+
+			# # FS
+			# transformer = SelectKBest(f_classif, k)
+			# # transformer = VarianceThreshold(0.005)
+			# new_sub_X = transformer.fit_transform(sub_X, sub_y)
+			# best_features = np.array(transformer.scores_).argsort()[-k:][::-1]
+			
+			from scipy.stats import pearsonr
+			
+			pearsons = []
+			for i in range(X.shape[1]):
+				p = pearsonr(np.squeeze(np.asarray(X[:,i])), y)
+				pearsons.append(p[0])
+			best_features = np.array(pearsons).argsort()[-k:][::-1]
+
+			new_X = X[:,best_features]
+			# print new_X.shape
+			# print y.shape
+
 		else:
-			transformers = []
+			new_X = X
+			best_features = 'all'
 
 		# execute algorithm
 		if alg == 'DT':
-			results = ML.CART(X, y, transformers, out_dir+"{}.dot".format(fname), headers)
+			results = ML.CART(new_X, y, best_features, out_dir+"{}.dot".format(fname), headers)
 		elif alg == 'RF':
-			results, features = ML.RF(X, y, transformers)
+			results, features = ML.RF(new_X, y, best_features)
 		elif alg == 'SVM':
-			results = ML.SVM(X, y, transformers)
+			results = ML.SVM(new_X, y, best_features)
 		elif alg == 'LR':
-			results, features = ML.LR(X, y, transformers)
+			results, features = ML.LR(new_X, y, best_features)
 
 		if not results:
 			return
