@@ -35,9 +35,10 @@ class MergeTab(PipelineTab):
 		dct['counts_consult_enrich'] = self.checkbutton_component('counts (consults enriched)', 8, 0)
 		dct['counts_referral'] = self.checkbutton_component('counts (referrals)', 9, 0)
 		dct['counts_lab'] = self.checkbutton_component('counts (lab)', 10, 0)
-		dct['tmprl'] = self.checkbutton_component('temporal (excl. enriched meds)', 11, 0)
-		dct['enriched_tmprl'] = self.checkbutton_component('temporal (incl. enriched meds)', 12, 0)
-		dct['target'] = self.checkbutton_component('target', 13, 0, init_val=True, mode=DISABLED)
+		dct['tmprl'] = self.checkbutton_component('temporal (excl. enriched)', 11, 0)
+		dct['enriched_tmprl'] = self.checkbutton_component('temporal (incl. enriched)', 12, 0)
+		dct['knowledge_driven'] = self.checkbutton_component('knowledge driven (Marshall)', 13, 0)
+		dct['target'] = self.checkbutton_component('target', 14, 0, init_val=True, mode=DISABLED)
 	
 	def setup_radio_buttons(self):
 		'''add feature selection choice part'''
@@ -80,6 +81,7 @@ class MergeTab(PipelineTab):
 		dct['counts_lab'].set(True)
 		dct['tmprl'].set(False)
 		dct['enriched_tmprl'].set(False)
+		dct['knowledge_driven'].set(False)
 
 	def go(self, button):
 		'''initiates the associated algorithms '''
@@ -95,12 +97,11 @@ class MergeTab(PipelineTab):
 
 		self.master.update_idletasks()
 
-		now = util.get_current_datetime()
-		util.make_dir(dct['out_dir'].get() + '/' + now)
+		util.make_dir(dct['out_dir'].get() + '/')
 
 		args = [dct['in_dir'].get(), 
 				dct['delimiter'].get(),
-				dct['out_dir'].get() + '/' + now + '/' + dct['output_id'].get() + '.csv', 
+				dct['out_dir'].get() + '/' + dct['output_id'].get() + '.csv', 
 				dct['age+gender'].get(), 
 				dct['counts_med'].get(), 
 				dct['counts_med_enrich'].get(), 
@@ -109,7 +110,8 @@ class MergeTab(PipelineTab):
 				dct['counts_referral'].get(), 
 				dct['counts_lab'].get(),
 				dct['tmprl'].get(), 
-				dct['enriched_tmprl'].get()
+				dct['enriched_tmprl'].get(),
+				dct['knowledge_driven'].get()
 		]
 
 		# feature_selection = 'none'#dct['feature_selection'].get()
