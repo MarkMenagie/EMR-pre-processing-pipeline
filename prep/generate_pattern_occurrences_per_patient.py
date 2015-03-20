@@ -30,7 +30,7 @@ def generate_pattern_occurrences_per_patient(out_dir, sequence_file, min_sup, ma
 
 	# make & write header
 	#header = ['patient','age','gender'] + ['p'+str(p) for p in range(len(patterns))] + ['CRC']
-	header = ['p'+str(p) for p in range(len(patterns))]
+	header = ['ID'] + ['p'+str(p) for p in range(len(patterns))]
 	out.writerow(header)
 
 	# check for each pattern whether it matches in the patient (1) or not (0)
@@ -51,7 +51,7 @@ def write_record(record, out, patterns):
 	pattern_occurrences = [1 if (pattern.id_list and SS.patient in pattern.id_list) or SS.covered_by(pattern) else 0 for pattern in patterns]
 	target = "negative" if SS.crc=='0' else "positive"
 	# out.writerow([patient, str(2011-int(birthyear)), gender] + pattern_occurrences + [target])
-	out.writerow(pattern_occurrences)
+	out.writerow([patient] + pattern_occurrences)
 
 def make_state_sequence(record):
 	'''recreates the state sequence used when mining for frequent patterns'''
