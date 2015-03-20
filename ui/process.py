@@ -110,7 +110,7 @@ class ProcessTab(PipelineTab):
 		dct['end_interval'].set(int(365./52*0+1))
 		dct['ID_column'].set('patientnummer')
 		dct['temporal_specific']['support'].set(0.1)
-		dct['mapping_dir'].set('../out/semantics_preliminary/')
+		dct['mapping_dir'].set('../out/semantics/')
 
 		dct['PMO'].set('PMO')
 		dct['MDM'].set('MDM')
