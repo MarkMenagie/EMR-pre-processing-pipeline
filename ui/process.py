@@ -198,6 +198,7 @@ class ProcessTab(PipelineTab):
 				name = 'sequences'
 
 			seq_p.process(needs_processing)
+			seq_p.sort_sequences()
 			seq_p.save_output(sequence_file=True, sub_dir='data/tmprl', name=name)
 
 			generate_pattern_occurrences_per_patient(out_dir, seq_p.id2data, min_sup, dct['mapping_dir'].get())

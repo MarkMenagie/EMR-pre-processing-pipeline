@@ -50,7 +50,7 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_se
 		print '  ...instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
 
 		# feature selection
-		k = 500
+		k = 50
 		if feature_selection and X.shape[1] >= k:
 			print '  ...performing feature selection'
 
@@ -113,7 +113,9 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_se
 		if alg == 'DT':
 			results = ML.CART(new_X, y, best_features, out_dir+"{}.dot".format(fname), headers)
 		elif alg == 'RF':
-			results, features = ML.RF(new_X, y, best_features)
+			results, features = ML.RF(new_X, y, best_features, n_estimators=100)
+		elif alg == 'RFsmall':
+			results, features = ML.RF(new_X, y, best_features, n_estimators=10)
 		elif alg == 'SVM':
 			results = ML.SVM(new_X, y, best_features)
 		elif alg == 'LR':

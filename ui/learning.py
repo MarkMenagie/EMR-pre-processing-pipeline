@@ -33,15 +33,19 @@ class LearningTab(PipelineTab):
 		self.user_input['LR'] = self.LR
 		self.buttons['LR'] = self.LR_btn
 
-		self.RF, self.RF_btn = self.make_checkbutton(self, 'RF', 5, 0)
+		self.RF, self.RF_btn = self.make_checkbutton(self, 'RF (100 Trees)', 5, 0)
 		self.user_input['RF'] = self.RF
 		self.buttons['RF'] = self.RF_btn
 
-		self.SVM, self.SVM_btn = self.make_checkbutton(self, 'SVM', 6, 0)
+		self.RF, self.RF_btn = self.make_checkbutton(self, 'RF (10 Trees)', 6, 0)
+		self.user_input['RFsmall'] = self.RF
+		self.buttons['RFsmall'] = self.RF_btn
+
+		self.SVM, self.SVM_btn = self.make_checkbutton(self, 'SVM', 7, 0)
 		self.user_input['SVM'] = self.SVM
 		self.buttons['SVM'] = self.SVM_btn
 
-		Label(self, text='   ').grid(row=7, column=0, columnspan=2)
+		Label(self, text='   ').grid(row=8, column=0, columnspan=2)
 		
 		self.FS, self.FS_btn = self.make_checkbutton(self, 'apply feature selection', 8, 0)
 		self.user_input['FS'] = self.FS
@@ -69,6 +73,7 @@ class LearningTab(PipelineTab):
 		dct['DT'].set(True)
 		dct['LR'].set(True)
 		dct['RF'].set(False)
+		dct['RFsmall'].set(False)
 		dct['SVM'].set(False)
 		dct['FS'].set(True)
 
@@ -88,6 +93,7 @@ class LearningTab(PipelineTab):
 		if dct['DT'].get(): algorithms.append('DT')
 		if dct['LR'].get(): algorithms.append('LR')
 		if dct['RF'].get(): algorithms.append('RF')
+		if dct['RFsmall'].get(): algorithms.append('RFsmall')
 		if dct['SVM'].get(): algorithms.append('SVM')
 
 		record_id = dct['record_id'].get().lower()

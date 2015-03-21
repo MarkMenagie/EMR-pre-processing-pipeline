@@ -27,8 +27,8 @@ def CART(X, y, best_features, out_file, field_names):
         tree.export_graphviz(model, out_file=out_file, feature_names=field_names)
     return results
 
-def RF(X, y, best_features):
-    results, model =  execute(X, y, best_features, lambda: ensemble.RandomForestClassifier(n_estimators=100,max_depth=5, min_samples_leaf=50, n_jobs=-1))
+def RF(X, y, best_features, n_estimators):
+    results, model =  execute(X, y, best_features, lambda: ensemble.RandomForestClassifier(n_estimators=n_estimators,max_depth=5, min_samples_leaf=50, n_jobs=-1))
     if model:
         features = model.feature_importances_
     else:
