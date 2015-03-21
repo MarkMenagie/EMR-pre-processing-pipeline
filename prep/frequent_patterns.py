@@ -141,9 +141,6 @@ def generate_candidates(all_patterns, Fk, F1, min_sup, data_dict):
 	# 			if state == fp1.states[0]:
 	# 				Fk_singletons.add(fp1)
 	Fk_singletons = set(fp1 for fp1 in F1 for fpk in Fk for state in fpk.states if state == fp1.states[0])
-	print '***'
-	print len(Fk_singletons), len(F1)
-
 	len_data = float((len(data_dict)))
 
 	candidates = []
