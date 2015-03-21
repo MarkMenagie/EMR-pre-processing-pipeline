@@ -126,12 +126,12 @@ class SequenceProcess(PreProcess):
 	 	'''sort each state sequence (= 1 per patient) consisting of state intervals
 		 	order of sort is: begin date->end date->lexical order of state name'''
 		for k in self.id2data:
-			sequence = self.id2data[k]
-			static_seq = sequence[0:2] # gender/age
-			crc = [sequence[2]]
-			dynamic_seq = sequence[3:]
+			sequence = self.id2data[k]['data']
+			static_seq = sequence[0:3] # gender/age
+			dynamic_seq = sequence[3:-1]
 			dynamic_seq.sort(key=attrgetter('begin', 'end', 'state'))
-			self.id2data[k] = static_seq + dynamic_seq + crc
+			crc = [sequence[-1]]
+			self.id2data[k]['data'] = static_seq + dynamic_seq + crc
 	
 	def generate_code(self, code, limit):
 		'''generates the required part of the code in a field, 
