@@ -13,42 +13,46 @@ class Raw2Patterns(Raw2Processed):
 		self.buttons['knowledge-driven'] = self.knowledge_btn
 		self.knowledge_btn.configure(command=lambda : self.toggle_other_buttons('knowledge-driven'), state=DISABLED)
 
-		self.medication, self.medication_btn = self.make_checkbutton(f, 'include medication', 1, 0)
+		self.antiknowledge, self.antiknowledge_btn = self.make_checkbutton(f, 'exclude usual suspects', 1, 0)
+		self.values['anti-knowledge-driven'] = self.antiknowledge
+		self.buttons['anti-knowledge-driven'] = self.antiknowledge_btn
+
+		self.medication, self.medication_btn = self.make_checkbutton(f, 'include medication', 2, 0)
 		self.values['medication'] = self.medication
 		self.buttons['medication'] = self.medication_btn
 		# self.medication_btn.configure(command=lambda : self.no_knowledge(self.medication))
 
-		self.consults, self.consults_btn = self.make_checkbutton(f, 'include consults', 2, 0)
+		self.consults, self.consults_btn = self.make_checkbutton(f, 'include consults', 3, 0)
 		self.values['consults'] = self.consults
 		self.buttons['consults'] = self.consults_btn
 		# self.consults_btn.configure(command=lambda : self.no_knowledge(self.consults))
 
-		self.referrals, self.referrals_btn = self.make_checkbutton(f, 'include referrals', 3, 0)
+		self.referrals, self.referrals_btn = self.make_checkbutton(f, 'include referrals', 4, 0)
 		self.values['referrals'] = self.referrals
 		self.buttons['referrals'] = self.referrals_btn
 		# self.referrals_btn.configure(command=lambda : self.no_knowledge(self.referrals))
 
-		self.comorbidity, self.comorbidity_btn = self.make_checkbutton(f, 'include comorbidity', 4, 0)
+		self.comorbidity, self.comorbidity_btn = self.make_checkbutton(f, 'include comorbidity', 5, 0)
 		self.values['comorbidity'] = self.comorbidity
 		self.buttons['comorbidity'] = self.comorbidity_btn
 		# self.comorbidity_btn.configure(command=lambda : self.no_knowledge(self.comorbidity))
 
-		self.lab_results, self.lab_results_btn = self.make_checkbutton(f, 'include lab results', 5, 0)
+		self.lab_results, self.lab_results_btn = self.make_checkbutton(f, 'include lab results', 6, 0)
 		self.values['lab_results'] = self.lab_results
 		self.buttons['lab_results'] = self.lab_results_btn
 		# self.lab_results_btn.configure(command=lambda : self.no_knowledge(self.lab_results))
 
-		self.support_val, self.support = self.make_label(f, 'Min. support', 6, 0)
+		self.support_val, self.support = self.make_label(f, 'Min. support', 7, 0)
 		self.values['support'] = self.support_val
 		# self.buttons['lab_results'] = self.lab_results_btn
 		# self.lab_results_btn.configure(command=lambda : self.no_knowledge(self.lab_results))
 
-		self.patterns, self.patterns_btn = self.make_checkbutton(f, 'I already have the sequences', 7, 0)
+		self.patterns, self.patterns_btn = self.make_checkbutton(f, 'I already have the sequences', 8, 0)
 		self.values['sequences_available'] = self.patterns
 		self.buttons['sequences_available'] = self.patterns_btn
 		self.patterns_btn.configure(command=lambda : self.sequence_mode(f, 'sequences_available'))
 
-		self.add_file_browser(f, 'Browse', '', 8, 0, mode=DISABLED)
+		self.add_file_browser(f, 'Browse', '', 9, 0, mode=DISABLED)
 
 		return f
 

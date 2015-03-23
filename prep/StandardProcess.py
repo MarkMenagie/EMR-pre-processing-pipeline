@@ -62,6 +62,8 @@ class StandardProcess(PreProcess):
 			if original_code == None:
 				continue
 			truncated_code = self.generate_code(original_code, limit)
+			if truncated_code == None:
+				continue
 			if suffix == 'lab_results':
 				val, min_val, max_val = self.make_lab_values(row[val_idx], row[min_idx], row[max_idx])
 				if val == '':
@@ -147,8 +149,14 @@ class StandardProcess(PreProcess):
 	def generate_code(self, code, limit):
 		'''generates the required part of the code in a field, 
 			e.g. atc code A01 in field A01B234'''
-		if code == None: code = ''
-		return code.upper().strip()[0:limit]
+		if code == None: 
+			code = ''
+		result = code.upper().strip().lower()[0:limit]
+
+		if result in ['oncologie', 'chirurgie', 'gastro-enterologie', 'interne geneeskunde']:
+			result = None
+
+		return result
 
 if __name__ == '__main__':
 	dct = dict()

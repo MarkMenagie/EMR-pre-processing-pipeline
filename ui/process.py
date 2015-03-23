@@ -7,6 +7,8 @@ import util_.in_out as io
 from prep.StandardProcess import StandardProcess
 from prep.SequenceProcess import SequenceProcess
 from prep.MarshallProcess import MarshallProcess
+from prep.NonMarshallSequenceProcess import NonMarshallSequenceProcess
+from prep.NonMarshallProcess import NonMarshallProcess
 from prep.EnrichProcesses import StandardEnrichProcess, SequenceEnrichProcess
 from prep.generate_pattern_occurrences_per_patient import generate_pattern_occurrences_per_patient
 
@@ -89,13 +91,13 @@ class ProcessTab(PipelineTab):
 	def setup_HIS_choice(self):
 		dct = self.user_input
 
-		Label(self, text='HISes to consider (only when using SQL):').grid(row=18, column=0, columnspan=2, sticky=W)
-		dct['PMO'] = self.checkbutton_component('Utrecht Promedico', 19, 0, init_val='PMO', onvalue='PMO', offvalue='')
-		dct['MDM'] = self.checkbutton_component('Utrecht Medicom', 20, 0, init_val='MDM', onvalue='MDM', offvalue='')
-		dct['LUMC'] = self.checkbutton_component('Leiden', 21, 0, init_val='LUMC', onvalue='LUMC', offvalue='')
-		dct['VUMH'] = self.checkbutton_component('Amsterdam MicroHIS', 22, 0, init_val='VUMH', onvalue='VUMH', offvalue='')
-		dct['VUMD'] = self.checkbutton_component('Amsterdam Medicom', 23, 0, init_val='VUMD', onvalue='VUMD', offvalue='')
-		dct['VUSC'] = self.checkbutton_component('Amsterdam Scipio', 24, 0, init_val='VUSC', onvalue='VUSC', offvalue='')
+		Label(self, text='HISes to consider (only when using SQL):').grid(row=19, column=0, columnspan=2, sticky=W)
+		dct['PMO'] = self.checkbutton_component('Utrecht Promedico', 20, 0, init_val='PMO', onvalue='PMO', offvalue='')
+		dct['MDM'] = self.checkbutton_component('Utrecht Medicom', 21, 0, init_val='MDM', onvalue='MDM', offvalue='')
+		dct['LUMC'] = self.checkbutton_component('Leiden', 22, 0, init_val='LUMC', onvalue='LUMC', offvalue='')
+		dct['VUMH'] = self.checkbutton_component('Amsterdam MicroHIS', 23, 0, init_val='VUMH', onvalue='VUMH', offvalue='')
+		dct['VUMD'] = self.checkbutton_component('Amsterdam Medicom', 24, 0, init_val='VUMD', onvalue='VUMD', offvalue='')
+		dct['VUSC'] = self.checkbutton_component('Amsterdam Scipio', 25, 0, init_val='VUSC', onvalue='VUSC', offvalue='')
 
 	def defaults(self):
 		'''set the user_input dict to default values'''
@@ -110,7 +112,7 @@ class ProcessTab(PipelineTab):
 		dct['end_interval'].set(int(365./52*0+1))
 		dct['ID_column'].set('patientnummer')
 		dct['temporal_specific']['support'].set(0.1)
-		dct['mapping_dir'].set('../out/semantics/')
+		dct['mapping_dir'].set('./out/semantics/')
 
 		dct['PMO'].set('PMO')
 		dct['MDM'].set('MDM')
@@ -143,7 +145,7 @@ class ProcessTab(PipelineTab):
 		if dct['temporal_specific']['support'].get() == '':
 			dct['temporal_specific']['support'].set(0.1)
 		if dct['mapping_dir'].get() == 'semantic enrichment dir':
-			dct['mapping_dir'].set('../out/semantics_preliminary/')
+			dct['mapping_dir'].set('./out/semantics/')
 
 
 		self.master.update_idletasks()
@@ -193,6 +195,9 @@ class ProcessTab(PipelineTab):
 			if dct['enrich'].get():
 				seq_p = SequenceEnrichProcess(*args, mapping_files_dir=dct['mapping_dir'].get())
 				name = 'sequences_enriched'
+			elif dct['temporal_specific']['anti-knowledge-driven'].get():
+				seq_p = NonMarshallSequenceProcess(*args)
+				name = 'sequences'				
 			else:
 				seq_p = SequenceProcess(*args)
 				name = 'sequences'
@@ -213,6 +218,7 @@ class ProcessTab(PipelineTab):
 
 		knowledge_driven = dct['a-temporal_specific']['knowledge-driven'].get()
 
+		print dct['a-temporal_specific']['anti-knowledge-driven'].get()
 		if knowledge_driven:
 			std_p = MarshallProcess(*args)
 			std_p.process(needs_processing)
@@ -221,6 +227,10 @@ class ProcessTab(PipelineTab):
 			std_p = StandardEnrichProcess(*args, mapping_files_dir=dct['mapping_dir'].get())
 			std_p.process(needs_processing)
 			std_p.save_output(name='counts_enriched', sub_dir='data')
+		elif dct['a-temporal_specific']['anti-knowledge-driven'].get():
+			std_p = NonMarshallProcess(*args)
+			std_p.process(needs_processing)
+			std_p.save_output(name='counts_excl_marshall', sub_dir='data')			
 		else:
 			std_p = StandardProcess(*args)
 			std_p.process(needs_processing)

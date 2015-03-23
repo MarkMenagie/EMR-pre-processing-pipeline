@@ -5,7 +5,7 @@ from date_math import str2date
 import util_.util as util
 import abstracts
 
-class MarshallProcess(StandardProcess):
+class NonMarshallProcess(StandardProcess):
 	'''class describing standard way of preprocessing 
 		the data by counting occurrences of data concepts'''
 
@@ -48,12 +48,13 @@ class MarshallProcess(StandardProcess):
 			if original_code == None:
 				continue
 			truncated_code = self.generate_code(original_code, limit)
-
-			### is in Marshall Predictors check ###
-			### if it is not a marshall predictor, we skip this line.
-			if not self.marshall_predictor(truncated_code, code_column):
+			if truncated_code == None:
 				continue
 
+			### is in Marshall Predictors check ###
+			### if it is a marshall predictor, we skip this line.
+			if self.marshall_predictor(truncated_code, code_column):
+				continue
 			num_total+=1
 
 			# if key is not in the data dictionary, we skip it
@@ -163,23 +164,3 @@ class MarshallProcess(StandardProcess):
 			'MCH','MCHC','MCHC'
 			'OCCULTBLOE', 'OCBIDF']
 		return is_med_predictor or is_consult_predictor or is_lab_predictor
-
-if __name__ == '__main__':
-	dct = dict()
-	dct['in_dir'] = '/Users/Reiny/Documents/UI_CRC/playground'
-	dct['delimiter'] = ','
-	dct['out_dir'] = '/Users/Reiny/Documents/UI_CRC/out'
-	dct['min_age'] = 18
-	dct['max_age'] = 150
-	dct['begin_interval'] = int(365./52*38)
-	dct['end_interval'] = int(365./52*12)
-	dct['ID_column'] = 'patientnummer'
-
-	sp = StandardProcess()
-	sp.process(dct['in_dir'],
-				dct['delimiter'],
-				dct['out_dir'],
-				dct['ID_column'],
-				dct['min_age'],
-				dct['max_age'],
-				[int(dct['end_interval']), int(dct['begin_interval'])])
