@@ -87,7 +87,8 @@ def mine(data_dict, min_sup, negated_data, verbose):
 		print "...found " + str(len(Fk))
 		if len(Fk) == 0:
 			break
-		# if k==2: exit()
+		if k==1: 
+			break
 	return result, MPTPs#[c for c in result if c.is_frequent]
 
 def generate_F1(data_dict, min_sup, negated_data):
