@@ -18,30 +18,30 @@ from scipy import interp
 def SVM(X, y, best_features):
     clf = svm.SVC(verbose=True, shrinking=False, probability=True, cache_size=1500, class_weight='auto')
     e_clf = ensemble.BaggingClassifier(clf, n_estimators=1, max_samples = 0.2, n_jobs=-1, verbose=True)
-    results, _ = execute(X, y, best_features, lambda: e_clf)
-    return results
+    results, model = execute(X, y, best_features, lambda: e_clf)
+    return results, model
 
 def CART(X, y, best_features, out_file, field_names):
     results, model = execute(X, y, best_features, lambda: tree.DecisionTreeClassifier(max_depth=5, min_samples_leaf=50))
     if model:
         tree.export_graphviz(model, out_file=out_file, feature_names=field_names)
-    return results
+    return results, model
 
 def RF(X, y, best_features, n_estimators):
-    results, model =  execute(X, y, best_features, lambda: ensemble.RandomForestClassifier(n_estimators=n_estimators,max_depth=5, min_samples_leaf=50, n_jobs=-1))
+    results, model = execute(X, y, best_features, lambda: ensemble.RandomForestClassifier(n_estimators=n_estimators,max_depth=5, min_samples_leaf=50, n_jobs=-1))
     if model:
         features = model.feature_importances_
     else:
         features = False
-    return results, features
+    return results, features, model
    
 def LR(X, y, best_features):
-    results, model =  execute(X, y, best_features, lambda: linear_model.LogisticRegression())
+    results, model = execute(X, y, best_features, lambda: linear_model.LogisticRegression())
     if model:
         features = model.coef_
     else:
         features = False
-    return results, features
+    return results, features, model
 
 def execute(X, y, best_features, classifier):
     cv = StratifiedKFold(y, n_folds=5) # x-validation

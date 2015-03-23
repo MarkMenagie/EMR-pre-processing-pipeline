@@ -3,8 +3,10 @@ import util_.in_out as in_out
 import algorithms as ML
 from sklearn.feature_selection import SelectKBest, f_classif, chi2, VarianceThreshold
 import numpy as np
+from scipy.stats import pearsonr
+from sklearn.metrics import roc_curve, auc
 
-def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection):
+def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset, in_dir2):
 	'''executes the learning task on the data in in_dir with the algorithms in algorithms.
 		The results are written to out_dir and subdirectories,
 	    and the record_ and target_ids are used to differentiate attributes and non-attributes'''
@@ -12,6 +14,8 @@ def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection
 	
 	# get the files
 	files = util.list_dir_csv(in_dir)
+	if separate_testset:
+		files2 = util.list_dir_csv(in_dir2)
 
 	# stop if no files found
 	if not files:
@@ -24,7 +28,10 @@ def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection
 	# execute each algorithm
 	for alg in algorithms:
 		print '...{}'.format(alg)
-		execute_with_algorithm(alg, files, out_dir+'/'+alg+'/', record_id, target_id, feature_selection)
+		set2model_instance = execute_with_algorithm(alg, files, out_dir+'/'+alg+'/', record_id, target_id, feature_selection)
+		if separate_testset:
+			predict_separate(alg, files2, out_dir+'/'+alg+'_test/', record_id, target_id, feature_selection, set2model_instance)
+		
 
 	# notify user
 	print '## Learning Finished ##'
@@ -36,6 +43,7 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_se
 
 	# list which will contain the results
 	results_list = []	
+	set2model_instance = dict()
 	
 	# run algorithm alg for each file f
 	for f in files:
@@ -53,7 +61,6 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_se
 		k = 50
 		if feature_selection and X.shape[1] >= k:
 			print '  ...performing feature selection'
-
 
 			# subset for feature selection
 			# print '   ...subsetting pos'
@@ -93,7 +100,6 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_se
 			# new_sub_X = transformer.fit_transform(sub_X, sub_y)
 			# best_features = np.array(transformer.scores_).argsort()[-k:][::-1]
 			
-			from scipy.stats import pearsonr
 			
 			pearsons = []
 			for i in range(X.shape[1]):
@@ -113,18 +119,20 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_se
 
 		# execute algorithm
 		if alg == 'DT':
-			results = ML.CART(new_X, y, best_features, out_dir+"{}.dot".format(fname), headers)
+			results, model = ML.CART(new_X, y, best_features, out_dir+"{}.dot".format(fname), headers)
 		elif alg == 'RF':
-			results, features = ML.RF(new_X, y, best_features, n_estimators=100)
+			results, features, model = ML.RF(new_X, y, best_features, n_estimators=100)
 		elif alg == 'RFsmall':
-			results, features = ML.RF(new_X, y, best_features, n_estimators=10)
+			results, features, model = ML.RF(new_X, y, best_features, n_estimators=10)
 		elif alg == 'SVM':
-			results = ML.SVM(new_X, y, best_features)
+			results, model = ML.SVM(new_X, y, best_features)
 		elif alg == 'LR':
-			results, features = ML.LR(new_X, y, best_features)
+			results, features, model = ML.LR(new_X, y, best_features)
 
 		if not results:
-			return
+			return set2model_instance
+
+		set2model_instance[fname] = (model, best_features)
 
 		# export results
 		results_list.append([fname] + results[0:3])
@@ -133,6 +141,47 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_se
 		if 'features' in locals():
 			features = features.flatten()
 			in_out.save_features(out_dir+"features_" + fname + '.csv', zip(headers[1:-1], features))
+	
+	in_out.save_ROC(out_dir+"roc.png", results_list, title='ROC curve')
+
+	return set2model_instance
+
+def predict_separate(alg, files, out_dir, record_id, target_id, feature_selection, model_info):
+	'''execute learning task using the specified algorithm'''
+
+	util.make_dir(out_dir)
+
+	# list which will contain the results
+	results_list = []	
+	
+	# run algorithm alg for each file f
+	for f in files:
+
+		# get base file name
+		fname = in_out.get_file_name(f, extension=False)
+		print ' ...{}'.format(fname)
+		
+		# get data, split in features/target. If invalid stuff happened --> exit
+		X, y, headers = in_out.import_data(f, record_id, target_id) # assumption: first column is patientnumber and is pruned, last is target
+		if type(X) == bool: return
+		print '  ...instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
+
+		best_features, model = model_info[fname]
+		if best_features == 'all':
+			new_X = X
+		else:
+			new_X = X[:,best_features]
+
+		# execute algorithm
+		y_pred = model.predict_probas(X_new)
+		fpr, tpr, thresholds = roc_curve(y, y_pred[:, 1])
+		mean_auc = auc(mean_fpr, mean_tpr)
+		results = [fpr, tpr, mean_auc, np.zeros((2,2))]
+
+		# export results
+		results_list.append([fname] + results)
+
+		in_out.save_results(out_dir+fname+'.csv', ["fpr", "tpr", "auc", "cm"], results, [sum(y),len(y)])
 	
 	in_out.save_ROC(out_dir+"roc.png", results_list, title='ROC curve')
 

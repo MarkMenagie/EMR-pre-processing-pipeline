@@ -51,6 +51,15 @@ class LearningTab(PipelineTab):
 		self.user_input['FS'] = self.FS
 		self.buttons['FS'] = self.FS_btn
 
+		Label(self, text='   ').grid(row=9, column=0, columnspan=2)
+		Label(self, text='If you want a separate testset, fill this in.').grid(row=10, column=0, columnspan=2, sticky=W)
+
+		dct['in_dir2'] = self.button_component('Browse', 'input folder', 11, 0)
+
+		self.sep_test, self.sep_test_btn = self.make_checkbutton(self, 'separate testset', 12, 0)
+		self.user_input['sep_test'] = self.sep_test
+		self.buttons['sep_test'] = self.sep_test_btn
+
 		# setup algorithm launcher button (incl defaults button)
 		self.setup_launcher()
 
@@ -100,7 +109,10 @@ class LearningTab(PipelineTab):
 		target_id = 'target'
 		feature_selection = dct['FS'].get()
 
-		learn.execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection)
+		separate_testset = dct['sep_test'].get()
+		in_dir2 = dct['in_dir2'].get()
+
+		learn.execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset, in_dir2)
 
 		button.config(text='Done')
 		self.master.update_idletasks()
