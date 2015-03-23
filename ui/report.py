@@ -58,8 +58,8 @@ class ReportTab(PipelineTab):
 		'''set the user_input dict to default values'''
 		dct = self.user_input
 
-		dct['f_general'].set('./out/out/alles 500 features geen svm/tmprl/RF/temporal.csv')
-		dct['f_predictors'].set('./out/out/alles 500 features geen svm/tmprl/RF/features_temporal.csv')
+		dct['f_general'].set('./out/out/newest/RF/temporal.csv')
+		dct['f_predictors'].set('./out/out/newest/RF/features_temporal.csv')
 		dct['f_data'].set('./out/combined/temporal.csv')
 		dct['f_out'].set('./out/analysis/temporal_RF.csv')
 		dct['feature-threshold'].set(0.1)
