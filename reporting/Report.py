@@ -59,7 +59,7 @@ class Report():
 		'''compile data of relevant predictors'''
 
 		# get relevant predictors
-		relevant_predictors = [p[0] for p in predictors if abs(float(p[1])) >= self.feature_threshold]
+		relevant_predictors = [p[0].lower() for p in predictors if abs(float(p[1])) >= self.feature_threshold]
 
 		# get indices of the relevant predictors
 		headers = data.next()

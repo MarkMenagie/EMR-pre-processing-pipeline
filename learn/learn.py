@@ -98,9 +98,11 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_se
 			pearsons = []
 			for i in range(X.shape[1]):
 				p = pearsonr(np.squeeze(np.asarray(X[:,i])), y)
-				pearsons.append(p[0])
+				pearsons.append(abs(p[0]))
 			best_features = np.array(pearsons).argsort()[-k:][::-1]
 
+			# print best_features
+			headers = [headers[i] for i in best_features]
 			new_X = X[:,best_features]
 			# print new_X.shape
 			# print y.shape
