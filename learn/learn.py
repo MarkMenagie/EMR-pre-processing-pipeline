@@ -142,12 +142,16 @@ def execute_with_algorithm(alg, files, out_dir, record_id, target_id, feature_se
 			features = features.flatten()
 			in_out.save_features(out_dir+"features_" + fname + '.csv', zip(headers[1:-1], features))
 	
-	in_out.save_ROC(out_dir+"roc.png", results_list, title='ROC curve')
+	try:
+		in_out.save_ROC(out_dir+"roc.png", results_list, title='ROC curve')
+	except IndexError:
+		pass
 
 	return set2model_instance
 
 def predict_separate(alg, files, out_dir, record_id, target_id, feature_selection, model_info):
 	'''execute learning task using the specified algorithm'''
+	print '  ...testing on new data'
 
 	util.make_dir(out_dir)
 
@@ -157,8 +161,12 @@ def predict_separate(alg, files, out_dir, record_id, target_id, feature_selectio
 	# run algorithm alg for each file f
 	for f in files:
 
-		# get base file name
+		# get base file name, skip if we do not have it in our model dictionary
 		fname = in_out.get_file_name(f, extension=False)
+		if not fname in model_info:
+			continue
+		model, best_features = model_info[fname]
+
 		print ' ...{}'.format(fname)
 		
 		# get data, split in features/target. If invalid stuff happened --> exit
@@ -166,16 +174,16 @@ def predict_separate(alg, files, out_dir, record_id, target_id, feature_selectio
 		if type(X) == bool: return
 		print '  ...instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
 
-		best_features, model = model_info[fname]
 		if best_features == 'all':
 			new_X = X
 		else:
+			print best_features
 			new_X = X[:,best_features]
 
 		# execute algorithm
-		y_pred = model.predict_probas(X_new)
-		fpr, tpr, thresholds = roc_curve(y, y_pred[:, 1])
-		mean_auc = auc(mean_fpr, mean_tpr)
+		y_pred = model.predict_proba(new_X)
+		fpr, tpr, _ = roc_curve(y, y_pred[:, 1])
+		mean_auc = auc(fpr, tpr)
 		results = [fpr, tpr, mean_auc, np.zeros((2,2))]
 
 		# export results
@@ -183,7 +191,10 @@ def predict_separate(alg, files, out_dir, record_id, target_id, feature_selectio
 
 		in_out.save_results(out_dir+fname+'.csv', ["fpr", "tpr", "auc", "cm"], results, [sum(y),len(y)])
 	
-	in_out.save_ROC(out_dir+"roc.png", results_list, title='ROC curve')
+	try:
+		in_out.save_ROC(out_dir+"roc.png", results_list, title='ROC curve')
+	except IndexError:
+		pass
 
 if __name__ == "__main__":
 	import argparse

@@ -86,6 +86,8 @@ class LearningTab(PipelineTab):
 		dct['SVM'].set(False)
 		dct['FS'].set(True)
 
+		dct['in_dir2'].set('./out/combined')
+
 	def go(self, button):
 		'''initiates the associated algorithms '''
 		button.config(text='Running', state=DISABLED)
