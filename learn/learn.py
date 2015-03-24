@@ -5,6 +5,7 @@ from sklearn.feature_selection import SelectKBest, f_classif, chi2, VarianceThre
 import numpy as np
 from scipy.stats import pearsonr
 from sklearn.metrics import roc_curve, auc
+from scipy import interp
 
 def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset, train_HISes=False):
 	'''executes the learning task on the data in in_dir with the algorithms in algorithms.
@@ -43,11 +44,14 @@ def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection
 			# get data, split in features/target. If invalid stuff happened --> exit
 			X, y, headers = in_out.import_data(f, record_id, target_id, train_HISes=train_HISes) # assumption: first column is patientnumber and is pruned, last is target
 			if type(X) == bool: return
-			print '  ...instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
 
 			if separate_testset:
 				X, X_te = X
 				y, y_te = y
+				print '  ...train instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
+				print '  ...test instances: {}, attributes: {}'.format(X_te.shape[0], X_te.shape[1])
+			else:
+				print '  ...instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
 
 			model, best_features, results = execute_with_algorithm(alg, X, y, fname, headers, out_dir+'/'+alg+'/', record_id, target_id, feature_selection)
 			results_list.append(results)
@@ -55,7 +59,7 @@ def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection
 			if separate_testset:
 				results = predict_separate(X_te, y_te, fname, out_dir+'/'+alg+'_test/', record_id, target_id, feature_selection, model, best_features)
 				results_list2.append(results)
-		
+
 		try:
 			in_out.save_ROC(out_dir+'/'+alg+'/'+"roc.png", results_list, title='ROC curve')
 		except IndexError:
@@ -167,18 +171,19 @@ def predict_separate(X, y, fname, out_dir, record_id, target_id, feature_selecti
 	if best_features == 'all':
 		new_X = X
 	else:
-		print best_features
 		new_X = X[:,best_features]
 
 	# execute algorithm
 	y_pred = model.predict_proba(new_X)
 	fpr, tpr, _ = roc_curve(y, y_pred[:, 1])
+	mean_fpr = np.linspace(0, 1, 100)
+	mean_tpr = interp(mean_fpr, fpr, tpr)
 	mean_auc = auc(fpr, tpr)
-	results = [fpr, tpr, mean_auc, np.zeros((2,2))]
-	results = [fname] + results[0:3]
+	results = [mean_fpr, mean_tpr, mean_auc, np.zeros((2,2))]
 
 	in_out.save_results(out_dir+fname+'.csv', ["fpr", "tpr", "auc", "cm"], results, [sum(y),len(y)])
 
+	results = [fname] + results[0:3]
 	return results
 
 

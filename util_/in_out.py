@@ -104,18 +104,20 @@ def import_data(f, record_id, target_id, train_HISes=False):
 
 		# save and split records
 		print '  ...(loading)'
-		test_records = [int(row[0]):row[1:] for row in rows]
+		records = {int(row[0]):row[1:] for row in rows}
 		
 		print '  ...(dividing in train/test)'
 		train_records = []
-		for ID in c:
-			if ID in test_records:
-				train_records.append(test_records.pop(ID))
+		for row in c:
+			ID = row[0]
+			if ID in records:
+				train_records.append(records.pop(ID))
+
 
 		print '  ...(converting to matrix)'
 		train_records = np.matrix(train_records)
-		test_records = np.matrix(test_records)
-	
+		test_records = np.matrix(records.values())
+
 		print '  ...(converting data type)'
 		train_records = train_records.astype(np.float64, copy=False)
 		test_records = test_records.astype(np.float64, copy=False)
@@ -147,7 +149,7 @@ def import_data(f, record_id, target_id, train_HISes=False):
 
 		# output
 		y_tr = train_records[:,-1] 
-		y_te = train_records[:,-1] 
+		y_te = test_records[:,-1] 
 		y_tr=np.squeeze(np.asarray(y_tr))
 		y_te=np.squeeze(np.asarray(y_te))
 
