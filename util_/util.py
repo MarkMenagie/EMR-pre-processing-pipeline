@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 import cx_Oracle
 from prep.date_math import str2date
+from math import sqrt,erf
 
 def import_data(f, delim=','):
 	'''import data and separates the column names from the data'''
@@ -88,4 +89,30 @@ def tkinter2var(d):
 def sql_connect():
 	'''connects to the SQL database, returns server handle'''
 	return cx_Oracle.connect('datamart', 'datamart', '10.67.201.10:1521/XE')
+
+def proportion_p_value(count1, n1, count2, n2):
+	'''calculates the p-value of two proportion'''
+	# perform statistical test (see http://stattrek.com/hypothesis-test/difference-in-proportions.aspx)
+
+	# proportions
+	p1 = count1 / n1
+	p2 = count2 / n2
+
+	# pooled sample statistic
+	p = ( (p1*n1) + (p2*n2) ) / (n1+n2)  
+
+	# standard error
+	SE = sqrt( p*(1-p) * ( 1./n1 + 1./n2) )
+	if SE == 0:
+		SE = 0.00000001
 	
+	# Z-score
+	Z = (p1-p2) / SE 
+	
+	# P-value
+	P_value=0.5*(1+erf(Z/sqrt(2)))
+
+	# two-tailed
+	P_value = 2 * (1-P_value)
+
+	return P_value

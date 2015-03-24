@@ -94,18 +94,7 @@ class FrequencyCounter():
 			# if pos_count > n2: 
 			# 	pos_count = n2
 
-			# proportions
-			p1 = neg_count / n1
-			p2 = pos_count / n2
-
-			# perform statistical test (see http://stattrek.com/hypothesis-test/difference-in-proportions.aspx)
-			p = ( (p1*n1) + (p2*n2) ) / (n1+n2)  # pooled sample statistic
-			# print key, p, n1, n2, p1, p2
-			SE = sqrt( p*(1-p) * ( 1./n1 + 1./n2) ) # standard error
-			if SE == 0:
-				SE = 0.00000001
-			Z = (p1-p2) / SE # Z-score
-			P_value = stats.norm.sf(Z)*2 # *2 because two-tailed
+			P_value = util.proporion_p_value(neg_count, n1, pos_count, n2)			
 			self.abstraction2counts[key].append(P_value)
 
 			# print '###'
