@@ -161,6 +161,6 @@ class NonMarshallProcess(StandardProcess):
 			'G04']
 		is_lab_predictor = (src == 'codenorm') and code in [
 			'HB','HBA1','HBA2',
-			'MCH','MCHC','MCHC'
+			'MCH','MCHC','MCV'
 			'OCCULTBLOE', 'OCBIDF']
 		return is_med_predictor or is_consult_predictor or is_lab_predictor

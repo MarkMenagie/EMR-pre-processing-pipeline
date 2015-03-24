@@ -151,9 +151,9 @@ class StandardProcess(PreProcess):
 			e.g. atc code A01 in field A01B234'''
 		if code == None: 
 			code = ''
-		result = code.upper().strip().lower()[0:limit]
+		result = code.upper().strip()[0:limit]
 
-		if result in ['oncologie', 'chirurgie', 'gastro-enterologie', 'interne geneeskunde']:
+		if result.lower() in ['oncologie', 'chirurgie', 'gastro-enterologie', 'interne geneeskunde', 'scopie-afdeling']:
 			result = None
 
 		return result

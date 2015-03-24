@@ -145,7 +145,7 @@ class NonMarshallSequenceProcess(SequenceProcess):
 		'''generates the required part of the code in a field, 
 			e.g. atc code A01 in field A01B234'''
 		result = code.upper().strip()[0:limit]
-		if result in ['oncologie', 'chirurgie', 'gastro-enterologie', 'interne geneeskunde']:
+		if result.lower() in ['oncologie', 'chirurgie', 'gastro-enterologie', 'interne geneeskunde']:
 			result = None
 		#'interne geneeskunde           ','gastro-enterologie            ', 
 		return result
@@ -159,7 +159,7 @@ class NonMarshallSequenceProcess(SequenceProcess):
 			'G04']
 		is_lab_predictor = (src == 'codenorm') and code in [
 			'HB','HBA1','HBA2',
-			'MCH','MCHC','MCHC'
+			'MCH','MCHC','MCV'
 			'OCCULTBLOE', 'OCBIDF']
 		return is_med_predictor or is_consult_predictor or is_lab_predictor
 		

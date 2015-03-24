@@ -138,8 +138,8 @@ class SequenceProcess(PreProcess):
 	def generate_code(self, code, limit):
 		'''generates the required part of the code in a field, 
 			e.g. atc code A01 in field A01B234'''
-		result = code.upper().strip().lower()[0:limit]
-		if result in ['oncologie', 'chirurgie', 'gastro-enterologie', 'interne geneeskunde']:
+		result = code.upper().strip()[0:limit]
+		if result.lower() in ['oncologie', 'chirurgie', 'gastro-enterologie', 'interne geneeskunde', 'scopie-afdeling']:
 			result = None
 		#'interne geneeskunde           ','gastro-enterologie            ', 
 		return result
