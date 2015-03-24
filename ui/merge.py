@@ -3,7 +3,6 @@ import util_.util as util
 from Tab import PipelineTab
 from Tkinter import DISABLED, NORMAL, StringVar, Radiobutton, W
 import features.merge as combine
-import features.extract as extract
 
 class MergeTab(PipelineTab):
 
@@ -11,7 +10,6 @@ class MergeTab(PipelineTab):
 		'''inits merge frame's components (buttons, fields, labels, underlying methods)'''
 		self.setup_IO_dirs()
 		self.setup_general()
-		# self.setup_radio_buttons()
 		self.setup_launcher()
 		self.pack()
 
@@ -38,32 +36,10 @@ class MergeTab(PipelineTab):
 		dct['tmprl'] = self.checkbutton_component('temporal (excl. enriched)', 11, 0)
 		dct['enriched_tmprl'] = self.checkbutton_component('temporal (incl. enriched)', 12, 0)
 		dct['knowledge_driven'] = self.checkbutton_component('knowledge driven (Marshall)', 13, 0)
-		dct['target'] = self.checkbutton_component('target', 14, 0, init_val=True, mode=DISABLED)
+		dct['anti_knowledge_driven'] = self.checkbutton_component('EXCLUDE Marshall, counts', 14, 0)
+		dct['anti_knowledge_driven_tmprl'] = self.checkbutton_component('EXCLUDE Marshall, temporal', 15, 0)
+		dct['target'] = self.checkbutton_component('target', 16, 0, init_val=True, mode=DISABLED)
 	
-	def setup_radio_buttons(self):
-		'''add feature selection choice part'''
-		dct = self.user_input
-
-		selection_var = StringVar()
-		# selection_var.set(0)
-
-		# get context dependent frame (regular)
-		no_selection_btn = Radiobutton(self, text='no feature selection', value='none', variable=selection_var)
-		no_selection_btn.grid(row=14, column=0, columnspan=2, sticky=W)
-
-		# get context dependent frame (temporal)
-		pre_selection_btn = Radiobutton(self, text='pre-merge selection', value='pre', variable=selection_var)
-		pre_selection_btn.grid(row=15, column=0, columnspan=2, sticky=W)
-
-		# get context dependent frame (temporal)
-		post_selection_btn = Radiobutton(self, text='post-merge selection', value='post', variable=selection_var)
-		post_selection_btn.grid(row=16, column=0, columnspan=2, sticky=W)
-
-		# configure events, invoke one by default
-		no_selection_btn.invoke() # default
-		
-		dct['feature_selection'] = selection_var
-
 	def defaults(self):
 		'''set the user_input dict to default values'''
 		dct = self.user_input
@@ -82,6 +58,8 @@ class MergeTab(PipelineTab):
 		dct['tmprl'].set(False)
 		dct['enriched_tmprl'].set(False)
 		dct['knowledge_driven'].set(False)
+		dct['anti_knowledge_driven'].set(False)
+		dct['anti_knowledge_driven_tmprl'].set(False)
 
 	def go(self, button):
 		'''initiates the associated algorithms '''
@@ -111,24 +89,13 @@ class MergeTab(PipelineTab):
 				dct['counts_lab'].get(),
 				dct['tmprl'].get(), 
 				dct['enriched_tmprl'].get(),
-				dct['knowledge_driven'].get()
+				dct['knowledge_driven'].get(),
+				dct['anti_knowledge_driven'].get(),
+				dct['anti_knowledge_driven_tmprl'].get()
 		]
-
-		# feature_selection = 'none'#dct['feature_selection'].get()
-
-		# if pre-merge selection, perform feature selection
-		# if feature_selection == 'pre':
-		# 	extract.features(*args)
-		# 	dct['in_dir'].set(dct['in_dir'].get() + '/selected')
 
 		# merge
 		combine.execute(*args)
-
-		# if post-merge selection, perform feature selection
-		# if feature_selection == 'post':
-		# 	dct['in_dir'].set(dct['out_dir'].get())
-		# 	dct['out_dir'].set(dct['out_dir'].get() + '/selected')
-		# 	extract.features(*args)
 
 		button.config(text='Done')
 		self.master.update_idletasks()

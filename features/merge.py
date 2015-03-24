@@ -5,7 +5,7 @@ from collections import defaultdict
 def execute(in_dir, delim, out_file, age_gender=False, counts_med=False, 
 				counts_med_enrich=False, counts_consult=False, counts_consult_enrich=False,
 				counts_referral=False, counts_lab=False, tmprl=False, 
-				enriched_tmprl=False, knowledge_driven=False):
+				enriched_tmprl=False, knowledge_driven=False, counts_no_knowledge=False, tmprl_no_knowledge=False):
 	'''merge the in files to produce the out file'''
 	merged = defaultdict(list)
 	headers = ['ID']
@@ -39,6 +39,12 @@ def execute(in_dir, delim, out_file, age_gender=False, counts_med=False,
 
 	if knowledge_driven:
 		headers = merge_file(in_dir+'/K.csv', merged, headers, delim)
+
+	if counts_no_knowledge:
+		headers = merge_file(in_dir+'/C_NK.csv', merged, headers, delim)
+
+	if tmprl_no_knowledge:
+		headers = merge_file(in_dir+'/T_NK.csv', merged, headers, delim)
 
 	headers = merge_file(in_dir+'/CRC.csv', merged, headers, delim)
 	
