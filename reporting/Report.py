@@ -1,4 +1,5 @@
 import util_.in_out as io
+import util_.util as util
 from operator import itemgetter
 
 class Report():
@@ -23,7 +24,7 @@ class Report():
 		self.compiled_result['general'] = self.compile_general(rows)
 
 		# compile header
-		headers = ['predictor', '# CRC', '% CRC', '# No CRC', '% No CRC', '# Total', '% Total']
+		headers = ['predictor', '# CRC', '% CRC', '# No CRC', '% No CRC', '# Total', '% Total', 'P value']
 		self.compiled_result['headers'] = headers
 
 		# compile results
@@ -93,7 +94,10 @@ class Report():
 			per_tot = float(num_tot) / self.num_Total *100
 
 			# make list and append
-			lst = [h[1], num_pos, per_pos, num_neg, per_neg, num_tot, per_tot]
+			lst = [h[1], num_pos, per_pos, 
+					num_neg, per_neg, 
+					num_tot, per_tot, 
+					util.proportion_p_value(num_neg,self.num_non_CRC,num_pos,self.num_CRC)]
 			transposed_result.append(lst)
 
 		# sort result by occurrence in the CRC column
