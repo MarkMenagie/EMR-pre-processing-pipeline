@@ -54,12 +54,14 @@ class LearningTab(PipelineTab):
 		Label(self, text='   ').grid(row=9, column=0, columnspan=2)
 		Label(self, text='If you want a separate testset, fill this in.').grid(row=10, column=0, columnspan=2, sticky=W)
 
-		dct['in_dir2'] = self.button_component('Browse', 'input folder', 11, 0)
-
-		self.sep_test, self.sep_test_btn = self.make_checkbutton(self, 'separate testset', 12, 0)
+		self.sep_test, self.sep_test_btn = self.make_checkbutton(self, 'separate testset (do not use; untested)', 12, 0)
 		self.user_input['sep_test'] = self.sep_test
 		self.buttons['sep_test'] = self.sep_test_btn
 
+		
+		Label(self, text='HISes used for training (rest = testing)').grid(row=19, column=0, columnspan=2, sticky=W)
+		self.setup_HIS_choice()
+		
 		# setup algorithm launcher button (incl defaults button)
 		self.setup_launcher()
 
@@ -86,8 +88,6 @@ class LearningTab(PipelineTab):
 		dct['SVM'].set(False)
 		dct['FS'].set(True)
 
-		dct['in_dir2'].set('./out/combined')
-
 	def go(self, button):
 		'''initiates the associated algorithms '''
 		button.config(text='Running', state=DISABLED)
@@ -112,9 +112,13 @@ class LearningTab(PipelineTab):
 		feature_selection = dct['FS'].get()
 
 		separate_testset = dct['sep_test'].get()
-		in_dir2 = dct['in_dir2'].get()
+		train_HISes = [dct['PMO'].get(), dct['MDM'].get(), dct['LUMC'].get(), 
+					 dct['VUMH'].get(), dct['VUMD'].get(), dct['VUSC'].get()]
 
-		learn.execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset, in_dir2)
+		if separate_testset:
+			learn.execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset, train_HISes)
+		else:
+			learn.execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset)			
 
 		button.config(text='Done')
 		self.master.update_idletasks()

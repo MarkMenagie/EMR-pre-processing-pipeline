@@ -48,7 +48,7 @@ def pprint_to_file(f_out, obj):
 	with open (f_out, 'w') as out:
 		pprint(obj, out)
 
-def import_data(f, record_id, target_id):
+def import_data(f, record_id, target_id, train_HISes=False):
 	'''imports the data and converts it to X (input) and y (output) data vectors'''
 	rows = read_csv(f)
 
@@ -62,34 +62,96 @@ def import_data(f, record_id, target_id):
 		print 'The specified instance ID was not found as column name. Manually check input file for correct instance ID column.'
 		return False, False, False
 
-	# save and split records
-	print '  ...(loading)'
-	records = [row[1:] for row in rows]
-	print '  ...(converting to matrix)'
-	# print len(records), len(records[0])
-	records = np.matrix(records)
-	# print records.shape
-	X = records[:,0:-1] # features
-	headers = headers[1:-1]
-	# print X.shape
-	# convert gender to binary
-	# X[X=='V'] = 1
-	# X[X=='M'] = 0
+	if not train_HISes:	
+		# save and split records
+		print '  ...(loading)'
+		records = [row[1:] for row in rows]
+		print '  ...(converting to matrix)'
+		# print len(records), len(records[0])
+		records = np.matrix(records)
+		# print records.shape
+		X = records[:,0:-1] # features
+		headers = headers[1:-1]
+		# print X.shape
+		# convert gender to binary
+		# X[X=='V'] = 1
+		# X[X=='M'] = 0
 
-	# output
-	y = records[:,-1] # target
-	# print y.shape
-	# convert negative and positive CRC cases to integers 0 and 1, respectively
-	# y[y=='negative'] = 0
-	# y[y=='positive'] = 1
-	y=np.squeeze(np.asarray(y.astype(np.int)))
-	# print y.shape
+		# output
+		y = records[:,-1] # target
+		# print y.shape
+		# convert negative and positive CRC cases to integers 0 and 1, respectively
+		# y[y=='negative'] = 0
+		# y[y=='positive'] = 1
+		y=np.squeeze(np.asarray(y.astype(np.int)))
+		# print y.shape
 
-	print '  ...(converting data type)'
-	X = X.astype(np.float64, copy=False)
-	y = y.astype(np.float64, copy=False)
-	# print X[0:5,0:5]
-	return X, y, headers
+		print '  ...(converting data type)'
+		X = X.astype(np.float64, copy=False)
+		y = y.astype(np.float64, copy=False)
+		# print X[0:5,0:5]
+		return X, y, headers
+	else:
+		# get HIS info from database
+		c = util.sql_connect().cursor()
+		train_HISes_str = "','".join(train_HISes)
+		q = '''SELECT patientnummer 
+				FROM patienten 
+				WHERE praktijkcode IN ('{}')'''.format(train_HISes_str)
+		c.execute(q)
+		
+		# patient_list = [row for row in c]
+
+		# save and split records
+		print '  ...(loading)'
+		test_records = [int(row[0]):row[1:] for row in rows]
+		
+		print '  ...(dividing in train/test)'
+		train_records = []
+		for ID in c:
+			if ID in test_records:
+				train_records.append(test_records.pop(ID))
+
+		print '  ...(converting to matrix)'
+		train_records = np.matrix(train_records)
+		test_records = np.matrix(test_records)
+	
+		print '  ...(converting data type)'
+		train_records = train_records.astype(np.float64, copy=False)
+		test_records = test_records.astype(np.float64, copy=False)
+
+		# print '  ...(getting train/test indices)'
+		# # r = records[:,0]
+		# # hoi2 = c.next()[0]
+		# # b = r > hoi2
+		# # print r,hoi2,b, type(b)
+		# # exit()
+		# train_indices = []
+		# test_indices = []	
+
+		# # records[:,0]==(c.next()[0])
+		# # print train_indices
+		# IDs = records[:,0].view(np.int)
+		# for p in c:
+		# 	if p[0] in IDs:
+		# 	# print type(train_indices), type(records[:,0]==p[0])
+		# 	train_indices = train_indices + (records[:,0]==(p[0]))
+		# print train_indices
+		# print '  ...did it'
+		# # train_indices = np.logical_or( *[records[:,0]==p for p in patient_list])
+		# test_indices = ~train_indices
+
+		X_tr = train_records[:,0:-1] # features
+		X_te = test_records[:,0:-1] # features
+		headers = headers[1:-1]
+
+		# output
+		y_tr = train_records[:,-1] 
+		y_te = train_records[:,-1] 
+		y_tr=np.squeeze(np.asarray(y_tr))
+		y_te=np.squeeze(np.asarray(y_te))
+
+		return (X_tr, X_te), (y_tr, y_te), headers
 
 def to_int(l):
 	return [int(el) for el in l]
