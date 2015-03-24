@@ -27,6 +27,16 @@ class PipelineTab(Tab):
 
 	### methods which add often occurring combinations of interface components using the grid layout ###
 
+	def setup_HIS_choice(self):
+		dct = self.user_input
+
+		dct['PMO'] = self.checkbutton_component('Utrecht Promedico', 20, 0, init_val='PMO', onvalue='PMO', offvalue='')
+		dct['MDM'] = self.checkbutton_component('Utrecht Medicom', 21, 0, init_val='MDM', onvalue='MDM', offvalue='')
+		dct['LUMC'] = self.checkbutton_component('Leiden', 22, 0, init_val='LUMC', onvalue='LUMC', offvalue='')
+		dct['VUMH'] = self.checkbutton_component('Amsterdam MicroHIS', 23, 0, init_val='VUMH', onvalue='VUMH', offvalue='')
+		dct['VUMD'] = self.checkbutton_component('Amsterdam Medicom', 24, 0, init_val='VUMD', onvalue='VUMD', offvalue='')
+		dct['VUSC'] = self.checkbutton_component('Amsterdam Scipio', 25, 0, init_val='VUSC', onvalue='VUSC', offvalue='')
+
 	def button_component(self, button_txt, init_txt, r, c, help_txt='', mode=NORMAL):
 		'''adds a button component associated with an entry (the label only activates when help_txt != '')'''
 		b = Button(self, text=button_txt)

@@ -25,6 +25,7 @@ class ProcessTab(PipelineTab):
 		self.setup_IO_dirs()
 		self.setup_general()
 		self.setup_radio_buttons()
+		Label(self, text='HISes to consider (only when using SQL):').grid(row=19, column=0, columnspan=2, sticky=W)
 		self.setup_HIS_choice()
 		self.setup_launcher()
 		self.pack()
@@ -88,17 +89,6 @@ class ProcessTab(PipelineTab):
 		old_f.grid_forget()
 		new_f.grid(row=12, column=0, rowspan=6, columnspan=2, sticky=W)
 
-	def setup_HIS_choice(self):
-		dct = self.user_input
-
-		Label(self, text='HISes to consider (only when using SQL):').grid(row=19, column=0, columnspan=2, sticky=W)
-		dct['PMO'] = self.checkbutton_component('Utrecht Promedico', 20, 0, init_val='PMO', onvalue='PMO', offvalue='')
-		dct['MDM'] = self.checkbutton_component('Utrecht Medicom', 21, 0, init_val='MDM', onvalue='MDM', offvalue='')
-		dct['LUMC'] = self.checkbutton_component('Leiden', 22, 0, init_val='LUMC', onvalue='LUMC', offvalue='')
-		dct['VUMH'] = self.checkbutton_component('Amsterdam MicroHIS', 23, 0, init_val='VUMH', onvalue='VUMH', offvalue='')
-		dct['VUMD'] = self.checkbutton_component('Amsterdam Medicom', 24, 0, init_val='VUMD', onvalue='VUMD', offvalue='')
-		dct['VUSC'] = self.checkbutton_component('Amsterdam Scipio', 25, 0, init_val='VUSC', onvalue='VUSC', offvalue='')
-
 	def defaults(self):
 		'''set the user_input dict to default values'''
 		dct = self.user_input
@@ -112,7 +102,7 @@ class ProcessTab(PipelineTab):
 		dct['end_interval'].set(int(365./52*0+1))
 		dct['ID_column'].set('patientnummer')
 		dct['temporal_specific']['support'].set(0.1)
-		dct['mapping_dir'].set('./out/semantics/')
+		dct['mapping_dir'].set('../out/semantics/')
 
 		dct['PMO'].set('PMO')
 		dct['MDM'].set('MDM')
@@ -197,7 +187,7 @@ class ProcessTab(PipelineTab):
 				name = 'sequences_enriched'
 			elif dct['temporal_specific']['anti-knowledge-driven'].get():
 				seq_p = NonMarshallSequenceProcess(*args)
-				name = 'sequences'				
+				name = 'sequences_excl_marshall'				
 			else:
 				seq_p = SequenceProcess(*args)
 				name = 'sequences'
@@ -210,7 +200,6 @@ class ProcessTab(PipelineTab):
 			sequence_f = out_dir + '/tmprl/{}.csv'.format(name)
 		else:
 			sequence_f = dct['temporal_specific']['sequence_file'].get()
-		# hier generaten met als extra input headers(?)/id2data
 			generate_pattern_occurrences_per_patient(out_dir, sequence_f, min_sup, dct['mapping_dir'].get())
 
 	def regular(self, dct, now, args):	
@@ -218,7 +207,6 @@ class ProcessTab(PipelineTab):
 
 		knowledge_driven = dct['a-temporal_specific']['knowledge-driven'].get()
 
-		print dct['a-temporal_specific']['anti-knowledge-driven'].get()
 		if knowledge_driven:
 			std_p = MarshallProcess(*args)
 			std_p.process(needs_processing)
