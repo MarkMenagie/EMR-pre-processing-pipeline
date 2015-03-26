@@ -7,7 +7,7 @@ from scipy.stats import pearsonr
 from sklearn.metrics import roc_curve, auc
 from scipy import interp
 
-def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset, train_HISes=False):
+def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset, train_HISes=[]):
 	'''executes the learning task on the data in in_dir with the algorithms in algorithms.
 		The results are written to out_dir and subdirectories,
 	    and the record_ and target_ids are used to differentiate attributes and non-attributes'''
@@ -50,8 +50,8 @@ def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection
 				y, y_te = y
 				print '  ...train instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
 				print '  ...test instances: {}, attributes: {}'.format(X_te.shape[0], X_te.shape[1])
-			else:
-				print '  ...instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
+			# else:
+			# 	print '  ...instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
 
 			model, best_features, results = execute_with_algorithm(alg, X, y, fname, headers, out_dir+'/'+alg+'/', record_id, target_id, feature_selection)
 			results_list.append(results)
@@ -180,7 +180,6 @@ def predict_separate(X, y, fname, out_dir, record_id, target_id, feature_selecti
 	mean_tpr = interp(mean_fpr, fpr, tpr)
 	mean_auc = auc(fpr, tpr)
 	results = [mean_fpr, mean_tpr, mean_auc, np.zeros((2,2))]
-
 	in_out.save_results(out_dir+fname+'.csv', ["fpr", "tpr", "auc", "cm"], results, [sum(y),len(y)])
 
 	results = [fname] + results[0:3]

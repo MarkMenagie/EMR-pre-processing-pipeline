@@ -72,32 +72,29 @@ def import_data(f, record_id, target_id, train_HISes=False):
 		# print records.shape
 		X = records[:,0:-1] # features
 		headers = headers[1:-1]
-		# print X.shape
-		# convert gender to binary
-		# X[X=='V'] = 1
-		# X[X=='M'] = 0
 
 		# output
 		y = records[:,-1] # target
-		# print y.shape
-		# convert negative and positive CRC cases to integers 0 and 1, respectively
-		# y[y=='negative'] = 0
-		# y[y=='positive'] = 1
 		y=np.squeeze(np.asarray(y.astype(np.int)))
-		# print y.shape
 
 		print '  ...(converting data type)'
 		X = X.astype(np.float64, copy=False)
 		y = y.astype(np.float64, copy=False)
 		# print X[0:5,0:5]
+
+		# print X.shape, y.shape, len(headers)
+		# print X, y
+		# del X, y
+
 		return X, y, headers
+
 	else:
 		# get HIS info from database
 		c = util.sql_connect().cursor()
 		train_HISes_str = "','".join(train_HISes)
 		q = '''SELECT patientnummer 
-				FROM patienten 
-				WHERE praktijkcode IN ('{}')'''.format(train_HISes_str)
+				FROM patienten
+				WHERE PRAKTIJKCODE IN ('{}')'''.format(train_HISes_str)
 		c.execute(q)
 		
 		# patient_list = [row for row in c]
@@ -113,14 +110,9 @@ def import_data(f, record_id, target_id, train_HISes=False):
 			if ID in records:
 				train_records.append(records.pop(ID))
 
-
 		print '  ...(converting to matrix)'
 		train_records = np.matrix(train_records)
 		test_records = np.matrix(records.values())
-
-		print '  ...(converting data type)'
-		train_records = train_records.astype(np.float64, copy=False)
-		test_records = test_records.astype(np.float64, copy=False)
 
 		# print '  ...(getting train/test indices)'
 		# # r = records[:,0]
@@ -149,10 +141,23 @@ def import_data(f, record_id, target_id, train_HISes=False):
 
 		# output
 		y_tr = train_records[:,-1] 
-		y_te = test_records[:,-1] 
-		y_tr=np.squeeze(np.asarray(y_tr))
-		y_te=np.squeeze(np.asarray(y_te))
+		y_tr = np.squeeze(np.asarray(y_tr.astype(np.int)))
+		try:
+			y_te = test_records[:,-1] 
+			y_te = np.squeeze(np.asarray(y_te.astype(np.int)))
+		except:
+			y_te = np.arange(y_tr.shape[0])
 
+		print '  ...(converting data type)'
+		X_tr = X_tr.astype(np.float64, copy=False)
+		X_te = X_te.astype(np.float64, copy=False)
+		y_tr = y_tr.astype(np.float64, copy=False)
+		y_te = y_te.astype(np.float64, copy=False)
+
+		# print X_tr, X_te
+		# print y_tr, y_te
+		# print X_tr.shape, X_te.shape, y_tr.shape, y_te.shape
+		# print len(headers)
 		return (X_tr, X_te), (y_tr, y_te), headers
 
 def to_int(l):
