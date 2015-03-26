@@ -24,7 +24,7 @@ class Report():
 		self.compiled_result['general'] = self.compile_general(rows)
 
 		# compile header
-		headers = ['predictor', '# CRC', '% CRC', '# No CRC', '% No CRC', '# Total', '% Total', 'P value']
+		headers = ['predictor', '# CRC', '% CRC', '# No CRC', '% No CRC', '# Total', '% Total', 'P value', 'Model importance']
 		self.compiled_result['headers'] = headers
 
 		# compile results
@@ -60,11 +60,11 @@ class Report():
 		'''compile data of relevant predictors'''
 
 		# get relevant predictors
-		relevant_predictors = [p[0].lower() for p in predictors if abs(float(p[1])) >= self.feature_threshold]
+		relevant_predictors = [(p[0].lower(), float(p[1])) for p in predictors if abs(float(p[1])) >= self.feature_threshold]
 
 		# get indices of the relevant predictors
 		headers = data.next()
-		relevant_tuples = [(i, h.lower()) for i, h in enumerate(headers) if h.lower() in relevant_predictors]
+		relevant_tuples = [(i, h.lower()) for i, h in enumerate(headers) if h.lower() in zip(*relevant_predictors)[0]]
 
 		# using the relevant indices, only keep the important data in memory
 		relevant_data = dict()
@@ -97,7 +97,8 @@ class Report():
 			lst = [h[1], num_pos, per_pos, 
 					num_neg, per_neg, 
 					num_tot, per_tot, 
-					util.proportion_p_value(num_neg,self.num_non_CRC,num_pos,self.num_CRC)]
+					util.proportion_p_value(num_neg,self.num_non_CRC,num_pos,self.num_CRC),
+					relevant_predictors[i][1]]
 			transposed_result.append(lst)
 
 		# sort result by occurrence in the CRC column

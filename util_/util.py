@@ -95,8 +95,8 @@ def proportion_p_value(count1, n1, count2, n2):
 	# perform statistical test (see http://stattrek.com/hypothesis-test/difference-in-proportions.aspx)
 
 	# proportions
-	p1 = count1 / n1
-	p2 = count2 / n2
+	p1 = float(count1) / n1
+	p2 = float(count2) / n2
 
 	# pooled sample statistic
 	p = ( (p1*n1) + (p2*n2) ) / (n1+n2)  
