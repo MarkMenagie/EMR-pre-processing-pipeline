@@ -2,6 +2,7 @@ import time
 import util_.util as util
 from Tab import PipelineTab
 from Tkinter import DISABLED, NORMAL, StringVar, Radiobutton, W
+from ttk import Label
 import features.merge as combine
 
 class MergeTab(PipelineTab):
@@ -10,6 +11,11 @@ class MergeTab(PipelineTab):
 		'''inits merge frame's components (buttons, fields, labels, underlying methods)'''
 		self.setup_IO_dirs()
 		self.setup_general()
+
+		Label(self, text='HISes as train (rest is test).\nOnly does something if "separate"\n button checked').grid(row=17, column=0, columnspan=2, sticky=W)
+		self.user_input['separate'] = self.checkbutton_component('Separate train/test', 18, 0)
+		self.setup_HIS_choice()
+
 		self.setup_launcher()
 		self.pack()
 
@@ -77,6 +83,9 @@ class MergeTab(PipelineTab):
 
 		util.make_dir(dct['out_dir'].get() + '/')
 
+		HISes = [dct['PMO'].get(), dct['MDM'].get(), dct['LUMC'].get(), 
+			 dct['VUMH'].get(), dct['VUMD'].get(), dct['VUSC'].get()]
+
 		args = [dct['in_dir'].get(), 
 				dct['delimiter'].get(),
 				dct['out_dir'].get() + '/' + dct['output_id'].get() + '.csv', 
@@ -91,7 +100,9 @@ class MergeTab(PipelineTab):
 				dct['enriched_tmprl'].get(),
 				dct['knowledge_driven'].get(),
 				dct['anti_knowledge_driven'].get(),
-				dct['anti_knowledge_driven_tmprl'].get()
+				dct['anti_knowledge_driven_tmprl'].get(),
+				dct['separate'].get(),
+				HISes
 		]
 
 		# merge

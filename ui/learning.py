@@ -52,15 +52,17 @@ class LearningTab(PipelineTab):
 		self.buttons['FS'] = self.FS_btn
 
 		Label(self, text='   ').grid(row=9, column=0, columnspan=2)
-		Label(self, text='If you want a separate testset, fill this in.').grid(row=10, column=0, columnspan=2, sticky=W)
+		Label(self, text='If you want a separate testset, \nfill in the following fields.').grid(row=10, column=0, columnspan=2, sticky=W)
 
 		self.sep_test, self.sep_test_btn = self.make_checkbutton(self, 'separate testset (do not use; untested)', 12, 0)
 		self.user_input['sep_test'] = self.sep_test
 		self.buttons['sep_test'] = self.sep_test_btn
 
+		Label(self, text='input folder for test').grid(row=13, column=0, columnspan=2, sticky=W)
+		dct['in_dir_test'] = self.button_component('Browse', 'input folder', 14, 0)
 		
-		Label(self, text='HISes used for training (rest = testing)').grid(row=19, column=0, columnspan=2, sticky=W)
-		self.setup_HIS_choice()
+		# Label(self, text='HISes used for training (rest = testing)').grid(row=19, column=0, columnspan=2, sticky=W)
+		# self.setup_HIS_choice()
 		
 		# setup algorithm launcher button (incl defaults button)
 		self.setup_launcher()
@@ -78,7 +80,7 @@ class LearningTab(PipelineTab):
 		'''set the user_input dict to default values'''
 		dct = self.user_input
 
-		dct['in_dir'].set('./out/combined')
+		dct['in_dir'].set('./out/combined/train')
 		dct['out_dir'].set('./out')
 		dct['record_id'].set('ID')
 		dct['DT'].set(True)
@@ -87,6 +89,7 @@ class LearningTab(PipelineTab):
 		dct['RFsmall'].set(False)
 		dct['SVM'].set(False)
 		dct['FS'].set(True)
+		dct['in_dir_test'].set('./out/combined/test')
 
 	def go(self, button):
 		'''initiates the associated algorithms '''
@@ -112,13 +115,11 @@ class LearningTab(PipelineTab):
 		feature_selection = dct['FS'].get()
 
 		separate_testset = dct['sep_test'].get()
-		train_HISes = [dct['PMO'].get(), dct['MDM'].get(), dct['LUMC'].get(), 
-					 dct['VUMH'].get(), dct['VUMD'].get(), dct['VUSC'].get()]
+		# train_HISes = [dct['PMO'].get(), dct['MDM'].get(), dct['LUMC'].get(), 
+					 # dct['VUMH'].get(), dct['VUMD'].get(), dct['VUSC'].get()]
+		in_dir_test = dct['in_dir_test'].get()
 
-		if separate_testset:
-			learn.execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset, train_HISes)
-		else:
-			learn.execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset)			
+		learn.execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset, in_dir_test)
 
 		button.config(text='Done')
 		self.master.update_idletasks()

@@ -7,7 +7,7 @@ from scipy.stats import pearsonr
 from sklearn.metrics import roc_curve, auc
 from scipy import interp
 
-def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset, train_HISes=[]):
+def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection, separate_testset, in_dir_test):
 	'''executes the learning task on the data in in_dir with the algorithms in algorithms.
 		The results are written to out_dir and subdirectories,
 	    and the record_ and target_ids are used to differentiate attributes and non-attributes'''
@@ -20,6 +20,11 @@ def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection
 	if not files:
 		print 'No appropriate csv files found. Select an input directory with appropriate files'
 		return
+
+	if separate_testset:
+		files_test = util.list_dir_csv(in_dir_test)
+	else:
+		files_test = files
 
 	# create directory
 	util.make_dir(out_dir)
@@ -37,27 +42,32 @@ def execute(in_dir, out_dir, record_id, target_id, algorithms, feature_selection
 		# list which will contain the results
 	
 		# run algorithm alg for each file f
-		for f in files:
+		for f, f_test in zip(files,files_test):
 			fname = in_out.get_file_name(f, extension=False)
 			print ' ...{}'.format(fname)
 	
 			# get data, split in features/target. If invalid stuff happened --> exit
-			X, y, headers = in_out.import_data(f, record_id, target_id, train_HISes=train_HISes) # assumption: first column is patientnumber and is pruned, last is target
+			X, y, headers = in_out.import_data(f, record_id, target_id) # assumption: first column is patientnumber and is pruned, last is target
 			if type(X) == bool: return
 
-			if separate_testset:
-				X, X_te = X
-				y, y_te = y
-				print '  ...train instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
-				print '  ...test instances: {}, attributes: {}'.format(X_te.shape[0], X_te.shape[1])
+			# if separate_testset:
+			# 	X, X_te = X
+			# 	y, y_te = y
+			# 	print '  ...train instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
+			# 	print '  ...test instances: {}, attributes: {}'.format(X_te.shape[0], X_te.shape[1])
 			# else:
-			# 	print '  ...instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
+			print '  ...instances: {}, attributes: {}'.format(X.shape[0], X.shape[1])
 
 			model, best_features, results = execute_with_algorithm(alg, X, y, fname, headers, out_dir+'/'+alg+'/', record_id, target_id, feature_selection)
 			results_list.append(results)
 
 			if separate_testset:
-				results = predict_separate(X_te, y_te, fname, out_dir+'/'+alg+'_test/', record_id, target_id, feature_selection, model, best_features)
+				X, y, headers = in_out.import_data(f_test, record_id, target_id) # assumption: first column is patientnumber and is pruned, last is target
+				if type(X) == bool: return
+				
+				print '  ...instances: {}, attributes: {} (test set)'.format(X.shape[0], X.shape[1])				
+
+				results = predict_separate(X, y, fname, out_dir+'/'+alg+'_test/', record_id, target_id, feature_selection, model, best_features)
 				results_list2.append(results)
 
 		try:
