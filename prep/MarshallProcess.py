@@ -1,7 +1,7 @@
 import re
 
 from StandardProcess import StandardProcess
-from date_math import str2date
+from date_math import str2date, four_weeks
 import util_.util as util
 import abstracts
 
@@ -68,6 +68,8 @@ class MarshallProcess(StandardProcess):
 			date = str2date(row[date_idx], give_default_begin=True)
 			begin = dct[key]['CRC_dates'][3]
 			end = dct[key]['CRC_dates'][4]
+			if code_column == 'specialisme':
+				end = end - four_weeks()
 
 			if suffix == 'lab_results':
 				val, min_val, max_val = self.make_lab_values(row[val_idx], row[min_idx], row[max_idx])

@@ -1,7 +1,7 @@
 import re
 
 from PreProcess import PreProcess
-from date_math import str2date
+from date_math import str2date, four_weeks
 import util_.util as util
 import abstracts
 
@@ -58,6 +58,9 @@ class StandardProcess(PreProcess):
 			date = str2date(row[date_idx], give_default_begin=True)
 			begin = dct[key]['CRC_dates'][3]
 			end = dct[key]['CRC_dates'][4]
+			if code_column == 'specialisme':
+				end = end - four_weeks()
+
 			original_code = row[code_idx]
 			if original_code == None:
 				continue

@@ -3,7 +3,7 @@ import re
 
 from PreProcess import PreProcess
 from StateInterval import StateInterval
-from date_math import get_dates, str2date
+from date_math import get_dates, str2date, four_weeks
 import util_.util as util
 import abstracts
 
@@ -52,6 +52,9 @@ class SequenceProcess(PreProcess):
 			e_date = str2date(row[e_date_idx], give_default_end=True) # end of event
 			b_reg = dct[key]['CRC_dates'][3] # beginning of registration
 			e_reg = dct[key]['CRC_dates'][4] # ending of registration
+			if code_column == 'specialisme':
+				e_reg = e_reg - four_weeks()
+
 			original_code = row[code_idx]
 			if original_code == None:
 				continue

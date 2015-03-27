@@ -3,7 +3,7 @@ import re
 
 from SequenceProcess import SequenceProcess
 from StateInterval import StateInterval
-from date_math import get_dates, str2date
+from date_math import get_dates, str2date, four_weeks
 import util_.util as util
 import abstracts
 
@@ -64,6 +64,9 @@ class NonMarshallSequenceProcess(SequenceProcess):
 			e_date = str2date(row[e_date_idx], give_default_end=True) # end of event
 			b_reg = dct[key]['CRC_dates'][3] # beginning of registration
 			e_reg = dct[key]['CRC_dates'][4] # ending of registration
+			if code_column == 'specialisme':
+				e_reg = e_reg - four_weeks()
+
 			if suffix == 'lab_results':
 				val, min_val, max_val = self.make_lab_values(row[val_idx], row[min_idx], row[max_idx])
 				if val == '':

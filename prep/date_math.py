@@ -64,6 +64,9 @@ class PatientInterval():
 		
 		return begin, (crc_diagnosis_date - end_measurement - one_day)
 
+def four_weeks():
+	return timedelta(weeks=4)
+
 # convert date string in the format yyyy-mm-dd to date object
 def str2date(date_str, ymd=True, yy=False, give_default_begin=False, give_default_end=False):
 	if type(date_str) == date:
