@@ -1,6 +1,19 @@
-# UI_CRC
-This project has been continued on a private GitLab repository in order to fulfill the customer's demand. It might be made publicly available again in the near future.
+# pre-processing pipeline
+This repository describes an Electronic Medical Record pre-processing pipeline developed at the VU University Amsterdam. The accompanying project has finished for now, and the code is stable. However, we often investigate optimizations and specific segments of the pipeline, as well as potential new ones. These are only added to this repository if we're confident about the performance. Two of those side projects are located [here](https://gitlab.com/crc-project/vumc-crc) and [here](git@gitlab.com:crc-project/patient-clustering.git). Note that these are under active development.
 
-simple interface to process the data (used in the CRC project)
+# usage
+traverse to the directory, type "python main.py" in your terminal, and the program will boot. 
 
-traverse to the directory, type "python main.py" in your terminal, and the program will boot. Documentation only released internally at VU University Amsterdam
+# dependencies
+* Python 2.7
+ 
+I recommend downloading the [Anaconda Python distribution](https://docs.continuum.io/anaconda/install) which comes pre-installed with most of the modules below.
+
+Required Python modules:
+* numpy
+* scipy
+* scikit-learn 
+* matplotlib
+* [cx_Oracle](https://pypi.python.org/pypi/cx_Oracle) (for DB connection). This might be a bit tricky to install but you can get started (here)[https://blogs.oracle.com/opal/entry/configuring_python_cx_oracle_and] and (here)[http://stackoverflow.com/questions/30928203/cx-oracle-does-not-recognize-location-of-oracle-software-installation-for-instal].
+* SPARQLWrapper (for the semantic enrichment)
+* TKinter / ttk (for the UI)
