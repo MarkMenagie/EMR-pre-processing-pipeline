@@ -4,6 +4,9 @@ This repository describes an Electronic Medical Record pre-processing pipeline d
 # usage
 traverse to the directory, type "python main.py" in your terminal, and the program will boot. 
 
+# issues and contributions
+Both are welcome. Submit an issue and assign yourself to it, then I will take any pull request into consideration.
+
 # dependencies
 * Python 2.7
  
