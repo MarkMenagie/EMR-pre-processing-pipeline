@@ -17,6 +17,6 @@ Required Python modules:
 * scipy
 * scikit-learn 
 * matplotlib
-* [cx_Oracle](https://pypi.python.org/pypi/cx_Oracle) (for DB connection). This might be a bit tricky to install but you can get started (here)[https://blogs.oracle.com/opal/entry/configuring_python_cx_oracle_and] and (here)[http://stackoverflow.com/questions/30928203/cx-oracle-does-not-recognize-location-of-oracle-software-installation-for-instal].
+* [cx_Oracle](https://pypi.python.org/pypi/cx_Oracle) (for DB connection). This might be a bit tricky to install but you can get started [here](https://blogs.oracle.com/opal/entry/configuring_python_cx_oracle_and) and [here](http://stackoverflow.com/questions/30928203/cx-oracle-does-not-recognize-location-of-oracle-software-installation-for-instal).
 * SPARQLWrapper (for the semantic enrichment)
 * TKinter / ttk (for the UI)
